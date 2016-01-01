@@ -27,19 +27,19 @@ gulp.task 'build-files', (cb) ->
     )
 
 gulp.task 'build-stylus', ->
-    gulp.src ['src/stylus/*.styl']
+    gulp.src ['src/stylus/**/*.styl']
         .pipe stylus()
         .pipe gulp.dest('dist/css')
         .pipe browserSync.stream()
 
 gulp.task 'build-css', ->
-    gulp.src ['src/css/*.css']
+    gulp.src ['src/css/**/*.css']
         .pipe gulp.dest('dist/css')
         .pipe browserSync.stream()
 
 gulp.task 'build-assets', (cb) ->
     gulp
-        .src ['src/assets/*']
+        .src ['src/assets/**/*']
         .pipe gulp.dest('dist/assets')
         .pipe browserSync.stream()
 
