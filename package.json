@@ -1,0 +1,44 @@
+{
+  "name": "rdplay",
+  "version": "1.0.0",
+  "description": "wo!",
+  "author": "fillmember <hi@fillmember.net>",
+  "main": "gulpfile.coffee",
+  "scripts": {
+    "watch": "gulp watch",
+    "build": "gulp build"
+  },
+  "keywords": [
+    "boilerplate",
+    "webpack",
+    "gulp",
+    "stylus",
+    "coffeescript",
+    "babel",
+    "es2015",
+    "jade"
+  ],
+  "dependencies": {
+    "jquery": "^2.1.4",
+    "three": "^0.73.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.3.26",
+    "babel-loader": "^6.2.0",
+    "babel-preset-es2015": "^6.3.13",
+    "browser-sync": "^2.10.1",
+    "coffee-loader": "^0.7.2",
+    "del": "^2.2.0",
+    "file-loader": "^0.8.5",
+    "gulp": "~3.8.1",
+    "gulp-jade": "~1.1.0",
+    "gulp-stylus": "^1.3.7",
+    "gulp-util": "~2.2.20",
+    "jade-loader": "^0.6.1",
+    "run-sequence": "^1.1.5",
+    "shader-loader": "^1.1.4",
+    "url-loader": "^0.5.7",
+    "webpack": "^1.12.9",
+    "yargs": "^3.31.0"
+  }
+}
