@@ -23,6 +23,7 @@ var config = {
       // STYLE
       { test: /\.css/, loader: "style-loader!css-loader" },
       { test: /\.jade/, loader: "jade-loader" },
+      { test: /\.styl/, loader: "style-loader!css-loader!stylus-loader" },
 
       // ASSET
       { test: /\.gif/, loader: "url-loader?limit=10000&minetype=image/gif" },

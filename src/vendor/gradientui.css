@@ -1,0 +1,18 @@
+
+.Gradient {
+	width: 300px;
+	height: 40px;
+}
+
+.gradient-view {
+    border: 1px solid;
+}
+
+.gradient-dragger {
+    border: 1px solid;
+    width: 7px;
+    height: 8px;
+    position: absolute;
+    bottom: 10px;
+    cursor: auto;
+}
