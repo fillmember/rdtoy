@@ -52,22 +52,22 @@
 	
 	dat = __webpack_require__(3);
 	
-	MouseUtils = __webpack_require__(6);
+	MouseUtils = __webpack_require__(4);
 	
-	DrawPad = __webpack_require__(4);
+	DrawPad = __webpack_require__(5);
 	
 	ReactiveDiffusionSimulator = __webpack_require__(7);
 	
 	gui = new dat.GUI;
 	
 	ready = new ReactiveDiffusionSimulator({
-	  width: 256,
-	  height: 256
+	  width: 512,
+	  height: 512
 	});
 	
 	drawpad = new DrawPad({
-	  width: 256,
-	  height: 256
+	  width: 512,
+	  height: 512
 	});
 	
 	$body = $('body');
@@ -78,9 +78,11 @@
 	
 	ready.showDebugInterface(gui);
 	
+	ready.presentMaterial.setupInterface($body);
+	
 	drawpad.showDebugInterface(gui);
 	
-	drawpad.fill(0.31, 0.6, 0);
+	drawpad.fill(0.31, 0.6, 0.1);
 	
 	drawTex = new THREE.Texture(drawpad.canvas);
 	
@@ -49210,6 +49212,111 @@
 
 /***/ },
 /* 4 */
+/***/ function(module, exports) {
+
+	var MouseEventManager, defaultFunction, lib;
+	
+	defaultFunction = function() {};
+	
+	MouseEventManager = (function() {
+	  function MouseEventManager(arg) {
+	    var dom, down, leave, move, up;
+	    dom = arg.dom, up = arg.up, down = arg.down, move = arg.move, leave = arg.leave;
+	    this.listeners = [];
+	    this.setDOM(dom);
+	    this.bind("mouseup", (function(_this) {
+	      return function() {
+	        return _this.mouseButtonPressed = false;
+	      };
+	    })(this));
+	    this.bind("mousedown", (function(_this) {
+	      return function() {
+	        return _this.mouseButtonPressed = true;
+	      };
+	    })(this));
+	    if (up != null) {
+	      this.bind("mouseup", up);
+	    }
+	    if (down != null) {
+	      this.bind("mousedown", down);
+	    }
+	    if (move != null) {
+	      this.bind("mousemove", move);
+	    }
+	    if (leave != null) {
+	      this.bind("mouseleave", leave);
+	    }
+	    this.mouseButtonPressed = false;
+	    return this;
+	  }
+	
+	  MouseEventManager.prototype.setDOM = function(dom) {
+	    return this.targetDOM = dom;
+	  };
+	
+	  MouseEventManager.prototype.bind = function(event, fn) {
+	    this.targetDOM.addEventListener(event, (function(_this) {
+	      return function(evt) {
+	        return fn(evt, _this);
+	      };
+	    })(this));
+	    return this.listeners.push({
+	      event: event,
+	      fn: fn
+	    });
+	  };
+	
+	  MouseEventManager.prototype.unbind = function() {
+	    var i, len, obj, ref, results;
+	    ref = this.listeners;
+	    results = [];
+	    for (i = 0, len = ref.length; i < len; i++) {
+	      obj = ref[i];
+	      results.push(this.targetDOM.removeEventListener(obj.event, obj.fn));
+	    }
+	    return results;
+	  };
+	
+	  return MouseEventManager;
+	
+	})();
+	
+	lib = {
+	  getPos: function(dom, x, y) {
+	    var rect;
+	    rect = dom.getBoundingClientRect();
+	    return {
+	      x: x - rect.left,
+	      y: y - rect.top
+	    };
+	  },
+	  getRelativePos: function(dom, x, y) {
+	    var rect;
+	    rect = dom.getBoundingClientRect();
+	    return {
+	      x: (x - rect.left) / rect.width,
+	      y: (y - rect.top) / rect.height
+	    };
+	  },
+	  posToUV: function(vec) {
+	    vec.y = 1 - vec.y;
+	    return vec;
+	  },
+	  getMouseUV: function(dom, x, y) {
+	    return this.posToUV(this.getRelativePos(dom, x, y));
+	  },
+	  bind: function(args) {
+	    var manager;
+	    manager = new MouseEventManager(args);
+	    return manager;
+	  }
+	};
+	
+	module.exports = lib;
+
+
+/***/ },
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var $, DrawPad, EventEmitter, MouseUtils, THREE;
@@ -49218,9 +49325,9 @@
 	
 	$ = __webpack_require__(2);
 	
-	EventEmitter = __webpack_require__(5).EventEmitter;
+	EventEmitter = __webpack_require__(6).EventEmitter;
 	
-	MouseUtils = __webpack_require__(6);
+	MouseUtils = __webpack_require__(4);
 	
 	DrawPad = (function() {
 	  function DrawPad(arg) {
@@ -49235,7 +49342,7 @@
 	    });
 	    this.setSize(this.width, this.height);
 	    this.events = new EventEmitter;
-	    this.drawColor = new THREE.Color(0.25, 0.5, 0);
+	    this.drawColor = new THREE.Color(0.25, 0.6, 0.05);
 	    this.drawSize = 25;
 	    this.drawFeather = 0;
 	    this.drawing = false;
@@ -49370,6 +49477,7 @@
 	    f.open();
 	    f.add(this.drawColor, "r", 0, 0.8).name("brush:birth rate");
 	    f.add(this.drawColor, "g", 0, 0.7).name("brush:kill rate");
+	    f.add(this.drawColor, "b", 0.05, 0.5).name("brush:sim step");
 	    return f.add(this, "drawSize", 5, 100).name("brush:size");
 	  };
 	
@@ -49381,7 +49489,7 @@
 
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -49685,111 +49793,6 @@
 
 
 /***/ },
-/* 6 */
-/***/ function(module, exports) {
-
-	var MouseEventManager, defaultFunction, lib;
-	
-	defaultFunction = function() {};
-	
-	MouseEventManager = (function() {
-	  function MouseEventManager(arg) {
-	    var dom, down, leave, move, up;
-	    dom = arg.dom, up = arg.up, down = arg.down, move = arg.move, leave = arg.leave;
-	    this.listeners = [];
-	    this.setDOM(dom);
-	    this.bind("mouseup", (function(_this) {
-	      return function() {
-	        return _this.mouseButtonPressed = false;
-	      };
-	    })(this));
-	    this.bind("mousedown", (function(_this) {
-	      return function() {
-	        return _this.mouseButtonPressed = true;
-	      };
-	    })(this));
-	    if (up != null) {
-	      this.bind("mouseup", up);
-	    }
-	    if (down != null) {
-	      this.bind("mousedown", down);
-	    }
-	    if (move != null) {
-	      this.bind("mousemove", move);
-	    }
-	    if (leave != null) {
-	      this.bind("mouseleave", leave);
-	    }
-	    this.mouseButtonPressed = false;
-	    return this;
-	  }
-	
-	  MouseEventManager.prototype.setDOM = function(dom) {
-	    return this.targetDOM = dom;
-	  };
-	
-	  MouseEventManager.prototype.bind = function(event, fn) {
-	    this.targetDOM.addEventListener(event, (function(_this) {
-	      return function(evt) {
-	        return fn(evt, _this);
-	      };
-	    })(this));
-	    return this.listeners.push({
-	      event: event,
-	      fn: fn
-	    });
-	  };
-	
-	  MouseEventManager.prototype.unbind = function() {
-	    var i, len, obj, ref, results;
-	    ref = this.listeners;
-	    results = [];
-	    for (i = 0, len = ref.length; i < len; i++) {
-	      obj = ref[i];
-	      results.push(this.targetDOM.removeEventListener(obj.event, obj.fn));
-	    }
-	    return results;
-	  };
-	
-	  return MouseEventManager;
-	
-	})();
-	
-	lib = {
-	  getPos: function(dom, x, y) {
-	    var rect;
-	    rect = dom.getBoundingClientRect();
-	    return {
-	      x: x - rect.left,
-	      y: y - rect.top
-	    };
-	  },
-	  getRelativePos: function(dom, x, y) {
-	    var rect;
-	    rect = dom.getBoundingClientRect();
-	    return {
-	      x: (x - rect.left) / rect.width,
-	      y: (y - rect.top) / rect.height
-	    };
-	  },
-	  posToUV: function(vec) {
-	    vec.y = 1 - vec.y;
-	    return vec;
-	  },
-	  getMouseUV: function(dom, x, y) {
-	    return this.posToUV(this.getRelativePos(dom, x, y));
-	  },
-	  bind: function(args) {
-	    var manager;
-	    manager = new MouseEventManager(args);
-	    return manager;
-	  }
-	};
-	
-	module.exports = lib;
-
-
-/***/ },
 /* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -49799,7 +49802,7 @@
 	
 	DefaultPresentMaterial = __webpack_require__(8);
 	
-	TextureHelper = __webpack_require__(11);
+	TextureHelper = __webpack_require__(19);
 	
 	brushOff = new THREE.Vector2(-1, -1);
 	
@@ -49874,10 +49877,10 @@
 	      camera: this.camera
 	    });
 	    this.textureHelper.setRenderTarget(this.width, this.height, renderTargetOptions);
-	    this.tex1 = this.textureHelper.getSolidRenderTarget(1, 0, 0);
-	    this.tex2 = this.textureHelper.getSolidRenderTarget(1, 0, 0);
-	    vShader = __webpack_require__(9);
-	    fShader = __webpack_require__(12);
+	    this.tex1 = this.textureHelper.getSolidRenderTarget(1, 1, 0);
+	    this.tex2 = this.textureHelper.getSolidRenderTarget(1, 1, 0);
+	    vShader = __webpack_require__(17);
+	    fShader = __webpack_require__(20);
 	    this.mat = new THREE.ShaderMaterial({
 	      uniforms: this.uniforms,
 	      vertexShader: vShader,
@@ -49995,9 +49998,13 @@
 /* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var GradientMappingMaterial, THREE;
+	var $, GradientMappingMaterial, THREE;
 	
 	THREE = __webpack_require__(1);
+	
+	$ = __webpack_require__(2);
+	
+	__webpack_require__(9)($);
 	
 	GradientMappingMaterial = (function() {
 	  function GradientMappingMaterial() {
@@ -50029,10 +50036,41 @@
 	    };
 	    this.material = new THREE.ShaderMaterial({
 	      uniforms: this.uniforms,
-	      vertexShader: __webpack_require__(9),
-	      fragmentShader: __webpack_require__(10)
+	      vertexShader: __webpack_require__(17),
+	      fragmentShader: __webpack_require__(18)
 	    });
 	  }
+	
+	  GradientMappingMaterial.prototype.setupInterface = function(parent) {
+	    var $gradientController, $ui;
+	    $ui = $('<div class="controller"></div>');
+	    $gradientController = $('<div class="gradientui"></div>');
+	    $ui.append($gradientController);
+	    $(parent).append($ui);
+	    this.$gradientController = $gradientController;
+	    $gradientController.gradient({
+	      values: [[0.00, '#033F09'], [0.20, '#651584'], [0.21, '#a6554d'], [0.40, '#35ca51'], [0.60, '#FFFFFF']]
+	    }).gradient('setUpdateCallback', (function(_this) {
+	      return function() {
+	        return _this.updateUniforms($gradientController.gradient("getValuesRGBS"));
+	      };
+	    })(this));
+	    return this.updateUniforms($gradientController.gradient("getValuesRGBS"));
+	  };
+	
+	  GradientMappingMaterial.prototype.updateInterface = function(values) {
+	    return this.$gradientController.gradient('setGradient', values);
+	  };
+	
+	  GradientMappingMaterial.prototype.updateUniforms = function(rgbs) {
+	    var color, i, index, len, results;
+	    results = [];
+	    for (index = i = 0, len = rgbs.length; i < len; index = ++i) {
+	      color = rgbs[index];
+	      results.push(this.uniforms["color" + (index + 1)].value.fromArray(color));
+	    }
+	    return results;
+	  };
 	
 	  return GradientMappingMaterial;
 	
@@ -50043,18 +50081,2961 @@
 
 /***/ },
 /* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	__webpack_require__(10)
+	
+	module.exports = function($) {
+	
+	    __webpack_require__(14)($)
+	
+	    window.dami = $
+	
+	    var hexToRgb = function(hex) {
+	        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+	        return result ? {
+	            r: parseInt(result[1], 16) / 255,
+	            g: parseInt(result[2], 16) / 255,
+	            b: parseInt(result[3], 16) / 255
+	        } : null;
+	    }
+	    
+	    var clamp = function(value, min, max) {
+	        return Math.max(min, Math.min(max, value));
+	    }
+	    
+	    var Dragger = function(parent, position, color) {
+	        this.parent = parent;
+	        this.parent.$this.append('<div class="gradient-dragger"></div>');
+	        this.$this = parent.$this.children('.gradient-dragger:last');
+	        this.width = parent.$this.children('.gradient-view').width() - 7;
+	        this.position = position;
+	        this.color = color;
+	        this.dragging = false;
+	        this.moved = false;
+	        this.oldleft = undefined
+	        this.mousedownx = undefined;
+	        this.$text = $('<span></span>')
+	        this.$this.append( this.$text )
+	        this.$this.css("left", this.position*this.width);
+	        this.$this.css("background-color", this.color);
+	        
+	        this.$this.bind("click.dragger", {this : this}, function(event){event.data.this.click(event)});
+	        this.$this.bind("mousedown.dragger", {this : this}, function(event){event.data.this.mousedown(event)});
+	        $(window).bind("mouseup.dragger", {this : this}, function(event){event.data.this.mouseup(event)});
+	        $(window).bind("mousemove.dragger", {this : this}, function(event){event.data.this.mousemove(event)});
+	
+	        var dragger = this
+	        this.$this.spectrum({
+	            replacerClassName: 'customSpectrum',
+	            color: this.color,
+	            showButtons: false,
+	            showInput: true,
+	            preferredFormat: 'hex',
+	            beforeShow: function(){ return dragger.moved ? false : true },
+	            move: function(tc) { dragger.setColor(tc.toHexString()) }
+	        })
+	
+	    }
+	    
+	    Dragger.prototype.click = function(event) {
+	        // if(this.moved) { return; }
+	    }
+	    
+	    Dragger.prototype.mousedown = function(event) {
+	        this.oldleft = parseInt(this.$this.css("left"), 10);
+	        this.mousedownx = event.pageX;
+	        this.dragging = true;
+	        this.moved = false;
+	        this.displayPosition(this.position);
+	    }
+	    
+	    Dragger.prototype.mouseup = function(event) {
+	        this.dragging = false;
+	        this.displayPosition(null);
+	    }
+	    
+	    Dragger.prototype.mousemove = function(event) {
+	        if(!this.dragging) { return; }
+	        
+	        var diff = event.pageX - this.mousedownx;
+	        var newleft = clamp(this.oldleft + diff, 0, this.width);
+	        
+	        this.position = newleft / this.width;
+	        this.$this.css("left", newleft);
+	        this.displayPosition(this.position);
+	        this.parent.redraw();
+	
+	        this.moved = true;
+	    }
+	
+	    Dragger.prototype.displayPosition = function(arg) {
+	        if (typeof arg === 'number') {
+	            this.$text.text(Math.round( arg * 100 ) / 100);
+	        } else if (arg) {
+	            this.$text.text(arg);
+	        } else {
+	            this.$text.text(null);
+	        }
+	    }
+	    
+	    Dragger.prototype.setPosition = function(pos) {
+	        pos = clamp(pos, 0.0, 1.0);
+	        var newleft = pos*this.width;
+	        
+	        this.$this.css("left", newleft);
+	        this.position = pos;
+	    }
+	    
+	    Dragger.prototype.setColor = function(color) {
+	        this.color = color;
+	        this.$this.css("background-color", color);
+	        this.parent.redraw();
+	    }
+	    
+	    var Gradient = function(parent, values) {
+	        this.$this = parent;
+	        
+	        // Disable selection.
+	        this.$this.get(0).onselectstart = function(){return false;};
+	        
+	        this.$this.css("position", "relative");
+	        this.width = this.$this.width();
+	        this.height = this.$this.height();
+	        this.$this.append('<canvas class="gradient-view"></canvas>');
+	        
+	        this.gradientview = this.$this.children('.gradient-view:first');
+	        this.gradientview.width(this.width);
+	        this.gradientview.height(this.height - 21);
+	        this.gradientview.css('position', 'absolute');
+	        this.gradientview.css('left', 0);
+	        
+	        this.canvas = this.gradientview.get(0);
+	        this.canvas.width = this.gradientview.width();
+	        this.canvas.height = this.gradientview.height();
+	        this.ctx = this.canvas.getContext('2d');
+	
+	        this.draggers = [];
+	        for(var i=0; i < values.length; i++)
+	            this.draggers.push(new Dragger(this, values[i][0], values[i][1]));
+	        
+	        this.redraw();
+	    }
+	    
+	    Gradient.prototype.updateValues = function() {
+	        var aux = this.draggers.map(function(a){return [a.position, a.color];});
+	        aux.sort(function(a,b){return a[0]-b[0];});
+	        
+	        this.values = aux;
+	        
+	        if(this.callback !== undefined)
+	            this.callback.fn(this.callback.data);
+	    }
+	    
+	    Gradient.prototype.setValues = function(values) {
+	        this.values = values;
+	        for (var i = values.length - 1; i >= 0; i--) {
+	            var v = values[i];
+	            this.draggers[i].setPosition(v[0]);
+	            this.draggers[i].setColor(v[1]);
+	        };
+	    }
+	    
+	    Gradient.prototype.redraw = function() {
+	        this.updateValues();
+	        var values = this.values;
+	        
+	        var lingrad = this.ctx.createLinearGradient(0, 0, this.canvas.width, 0);
+	        for(var i=0; i<values.length; i++)
+	            lingrad.addColorStop(values[i][0], values[i][1]);
+	        
+	        this.ctx.fillStyle = lingrad;
+	        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+	    }
+	    
+	    Gradient.prototype.setUpdateCallback = function(callback, data) {
+	        this.callback = {};
+	        this.callback.fn = callback;
+	        this.callback.data = data;
+	    }
+	    
+	    var methods = {
+	        init : function(options) {
+	            
+	            var settings = $.extend( {
+	                  values         : [[0.2, "#FF0000"], [0.4, "#00FF00"], [0.6, "#0000FF"], [0.8, "#FFFFFF"]]
+	                }, options);
+	            
+	            return this.each(function(){
+	                var aux = new Gradient($(this), settings.values);
+	                $(this).data("gradient", aux);
+	            });
+	        },
+	        
+	        destroy : function() {
+	            return this.each(function(){
+	                $(window).unbind(".gradient");
+	            });
+	        },
+	        
+	        getValuesRGBS : function() {
+	            
+	            var values = $(this).data("gradient").values;
+	            var valuesRGBS = values.map(function(a){
+	                var rgb = hexToRgb(a[1]);
+	                return [rgb.r, rgb.g, rgb.b, a[0]]
+	            });
+	            return valuesRGBS;
+	        },
+	        
+	        setValues : function(values) {
+	            $(this).data("gradient").setValues(values);
+	        },
+	        
+	        getValues : function() {
+	            return $(this).data("gradient").values;
+	        },
+	        
+	        setUpdateCallback : function(callback, data) {
+	            $(this).data("gradient").setUpdateCallback(callback, data);
+	            return this;
+	        }
+	    };
+	    
+	    $.fn.gradient = function(method) {
+	        if(methods[method]) {
+	            return methods[method].apply(this, Array.prototype.slice.call(arguments, 1));
+	        } else if(typeof method === 'object' || !method) {
+	            return methods.init.apply(this, arguments);
+	        } else {
+	            $.error('Method ' +  method + ' does not exist on gradientui');
+	        }
+	    };
+	
+	}
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+	
+	// load the styles
+	var content = __webpack_require__(11);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(13)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(false) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept("!!./../../node_modules/css-loader/index.js!./gradientui.css", function() {
+				var newContent = require("!!./../../node_modules/css-loader/index.js!./gradientui.css");
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(12)();
+	// imports
+	
+	
+	// module
+	exports.push([module.id, "\n.gradientui {\n\twidth: 300px;\n\theight: 40px;\n}\n\n.gradient-view {\n    border: 1px solid;\n}\n\n.gradient-dragger {\n    border: 1px solid;\n    width: 7px;\n    height: 8px;\n    position: absolute;\n    bottom: 10px;\n    cursor: auto;\n}\n\n.gradient-dragger span {\n\tz-index: 999;\n\tposition: absolute;\n\tleft: 9px;\n\tfont-size: 0.2em;\n\tfont-family: monospace;\n\tcolor: #666666;\n\tbackground: #FFFFFF;\n}", ""]);
+	
+	// exports
+
+
+/***/ },
+/* 12 */
+/***/ function(module, exports) {
+
+	/*
+		MIT License http://www.opensource.org/licenses/mit-license.php
+		Author Tobias Koppers @sokra
+	*/
+	// css base code, injected by the css-loader
+	module.exports = function() {
+		var list = [];
+	
+		// return the list of modules as css string
+		list.toString = function toString() {
+			var result = [];
+			for(var i = 0; i < this.length; i++) {
+				var item = this[i];
+				if(item[2]) {
+					result.push("@media " + item[2] + "{" + item[1] + "}");
+				} else {
+					result.push(item[1]);
+				}
+			}
+			return result.join("");
+		};
+	
+		// import a list of modules into the list
+		list.i = function(modules, mediaQuery) {
+			if(typeof modules === "string")
+				modules = [[null, modules, ""]];
+			var alreadyImportedModules = {};
+			for(var i = 0; i < this.length; i++) {
+				var id = this[i][0];
+				if(typeof id === "number")
+					alreadyImportedModules[id] = true;
+			}
+			for(i = 0; i < modules.length; i++) {
+				var item = modules[i];
+				// skip already imported module
+				// this implementation is not 100% perfect for weird media query combinations
+				//  when a module is imported multiple times with different media queries.
+				//  I hope this will never occur (Hey this way we have smaller bundles)
+				if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+					if(mediaQuery && !item[2]) {
+						item[2] = mediaQuery;
+					} else if(mediaQuery) {
+						item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+					}
+					list.push(item);
+				}
+			}
+		};
+		return list;
+	};
+
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/*
+		MIT License http://www.opensource.org/licenses/mit-license.php
+		Author Tobias Koppers @sokra
+	*/
+	var stylesInDom = {},
+		memoize = function(fn) {
+			var memo;
+			return function () {
+				if (typeof memo === "undefined") memo = fn.apply(this, arguments);
+				return memo;
+			};
+		},
+		isOldIE = memoize(function() {
+			return /msie [6-9]\b/.test(window.navigator.userAgent.toLowerCase());
+		}),
+		getHeadElement = memoize(function () {
+			return document.head || document.getElementsByTagName("head")[0];
+		}),
+		singletonElement = null,
+		singletonCounter = 0,
+		styleElementsInsertedAtTop = [];
+	
+	module.exports = function(list, options) {
+		if(true) {
+			if(typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
+		}
+	
+		options = options || {};
+		// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
+		// tags it will allow on a page
+		if (typeof options.singleton === "undefined") options.singleton = isOldIE();
+	
+		// By default, add <style> tags to the bottom of <head>.
+		if (typeof options.insertAt === "undefined") options.insertAt = "bottom";
+	
+		var styles = listToStyles(list);
+		addStylesToDom(styles, options);
+	
+		return function update(newList) {
+			var mayRemove = [];
+			for(var i = 0; i < styles.length; i++) {
+				var item = styles[i];
+				var domStyle = stylesInDom[item.id];
+				domStyle.refs--;
+				mayRemove.push(domStyle);
+			}
+			if(newList) {
+				var newStyles = listToStyles(newList);
+				addStylesToDom(newStyles, options);
+			}
+			for(var i = 0; i < mayRemove.length; i++) {
+				var domStyle = mayRemove[i];
+				if(domStyle.refs === 0) {
+					for(var j = 0; j < domStyle.parts.length; j++)
+						domStyle.parts[j]();
+					delete stylesInDom[domStyle.id];
+				}
+			}
+		};
+	}
+	
+	function addStylesToDom(styles, options) {
+		for(var i = 0; i < styles.length; i++) {
+			var item = styles[i];
+			var domStyle = stylesInDom[item.id];
+			if(domStyle) {
+				domStyle.refs++;
+				for(var j = 0; j < domStyle.parts.length; j++) {
+					domStyle.parts[j](item.parts[j]);
+				}
+				for(; j < item.parts.length; j++) {
+					domStyle.parts.push(addStyle(item.parts[j], options));
+				}
+			} else {
+				var parts = [];
+				for(var j = 0; j < item.parts.length; j++) {
+					parts.push(addStyle(item.parts[j], options));
+				}
+				stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
+			}
+		}
+	}
+	
+	function listToStyles(list) {
+		var styles = [];
+		var newStyles = {};
+		for(var i = 0; i < list.length; i++) {
+			var item = list[i];
+			var id = item[0];
+			var css = item[1];
+			var media = item[2];
+			var sourceMap = item[3];
+			var part = {css: css, media: media, sourceMap: sourceMap};
+			if(!newStyles[id])
+				styles.push(newStyles[id] = {id: id, parts: [part]});
+			else
+				newStyles[id].parts.push(part);
+		}
+		return styles;
+	}
+	
+	function insertStyleElement(options, styleElement) {
+		var head = getHeadElement();
+		var lastStyleElementInsertedAtTop = styleElementsInsertedAtTop[styleElementsInsertedAtTop.length - 1];
+		if (options.insertAt === "top") {
+			if(!lastStyleElementInsertedAtTop) {
+				head.insertBefore(styleElement, head.firstChild);
+			} else if(lastStyleElementInsertedAtTop.nextSibling) {
+				head.insertBefore(styleElement, lastStyleElementInsertedAtTop.nextSibling);
+			} else {
+				head.appendChild(styleElement);
+			}
+			styleElementsInsertedAtTop.push(styleElement);
+		} else if (options.insertAt === "bottom") {
+			head.appendChild(styleElement);
+		} else {
+			throw new Error("Invalid value for parameter 'insertAt'. Must be 'top' or 'bottom'.");
+		}
+	}
+	
+	function removeStyleElement(styleElement) {
+		styleElement.parentNode.removeChild(styleElement);
+		var idx = styleElementsInsertedAtTop.indexOf(styleElement);
+		if(idx >= 0) {
+			styleElementsInsertedAtTop.splice(idx, 1);
+		}
+	}
+	
+	function createStyleElement(options) {
+		var styleElement = document.createElement("style");
+		styleElement.type = "text/css";
+		insertStyleElement(options, styleElement);
+		return styleElement;
+	}
+	
+	function createLinkElement(options) {
+		var linkElement = document.createElement("link");
+		linkElement.rel = "stylesheet";
+		insertStyleElement(options, linkElement);
+		return linkElement;
+	}
+	
+	function addStyle(obj, options) {
+		var styleElement, update, remove;
+	
+		if (options.singleton) {
+			var styleIndex = singletonCounter++;
+			styleElement = singletonElement || (singletonElement = createStyleElement(options));
+			update = applyToSingletonTag.bind(null, styleElement, styleIndex, false);
+			remove = applyToSingletonTag.bind(null, styleElement, styleIndex, true);
+		} else if(obj.sourceMap &&
+			typeof URL === "function" &&
+			typeof URL.createObjectURL === "function" &&
+			typeof URL.revokeObjectURL === "function" &&
+			typeof Blob === "function" &&
+			typeof btoa === "function") {
+			styleElement = createLinkElement(options);
+			update = updateLink.bind(null, styleElement);
+			remove = function() {
+				removeStyleElement(styleElement);
+				if(styleElement.href)
+					URL.revokeObjectURL(styleElement.href);
+			};
+		} else {
+			styleElement = createStyleElement(options);
+			update = applyToTag.bind(null, styleElement);
+			remove = function() {
+				removeStyleElement(styleElement);
+			};
+		}
+	
+		update(obj);
+	
+		return function updateStyle(newObj) {
+			if(newObj) {
+				if(newObj.css === obj.css && newObj.media === obj.media && newObj.sourceMap === obj.sourceMap)
+					return;
+				update(obj = newObj);
+			} else {
+				remove();
+			}
+		};
+	}
+	
+	var replaceText = (function () {
+		var textStore = [];
+	
+		return function (index, replacement) {
+			textStore[index] = replacement;
+			return textStore.filter(Boolean).join('\n');
+		};
+	})();
+	
+	function applyToSingletonTag(styleElement, index, remove, obj) {
+		var css = remove ? "" : obj.css;
+	
+		if (styleElement.styleSheet) {
+			styleElement.styleSheet.cssText = replaceText(index, css);
+		} else {
+			var cssNode = document.createTextNode(css);
+			var childNodes = styleElement.childNodes;
+			if (childNodes[index]) styleElement.removeChild(childNodes[index]);
+			if (childNodes.length) {
+				styleElement.insertBefore(cssNode, childNodes[index]);
+			} else {
+				styleElement.appendChild(cssNode);
+			}
+		}
+	}
+	
+	function applyToTag(styleElement, obj) {
+		var css = obj.css;
+		var media = obj.media;
+		var sourceMap = obj.sourceMap;
+	
+		if(media) {
+			styleElement.setAttribute("media", media)
+		}
+	
+		if(styleElement.styleSheet) {
+			styleElement.styleSheet.cssText = css;
+		} else {
+			while(styleElement.firstChild) {
+				styleElement.removeChild(styleElement.firstChild);
+			}
+			styleElement.appendChild(document.createTextNode(css));
+		}
+	}
+	
+	function updateLink(linkElement, obj) {
+		var css = obj.css;
+		var media = obj.media;
+		var sourceMap = obj.sourceMap;
+	
+		if(sourceMap) {
+			// http://stackoverflow.com/a/26603875
+			css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
+		}
+	
+		var blob = new Blob([css], { type: "text/css" });
+	
+		var oldSrc = linkElement.href;
+	
+		linkElement.href = URL.createObjectURL(blob);
+	
+		if(oldSrc)
+			URL.revokeObjectURL(oldSrc);
+	}
+
+
+/***/ },
+/* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// Spectrum Colorpicker v1.8.0
+	// https://github.com/bgrins/spectrum
+	// Author: Brian Grinstead
+	// License: MIT
+	
+	__webpack_require__(15)
+	
+	module.exports = function($, undefined) {
+	    "use strict";
+	
+	    var defaultOpts = {
+	
+	        // Callbacks
+	        beforeShow: noop,
+	        move: noop,
+	        change: noop,
+	        show: noop,
+	        hide: noop,
+	
+	        // Options
+	        color: false,
+	        flat: false,
+	        showInput: false,
+	        allowEmpty: false,
+	        showButtons: true,
+	        clickoutFiresChange: true,
+	        showInitial: false,
+	        showPalette: false,
+	        showPaletteOnly: false,
+	        hideAfterPaletteSelect: false,
+	        togglePaletteOnly: false,
+	        showSelectionPalette: true,
+	        localStorageKey: false,
+	        appendTo: "body",
+	        maxSelectionSize: 7,
+	        cancelText: "cancel",
+	        chooseText: "choose",
+	        togglePaletteMoreText: "more",
+	        togglePaletteLessText: "less",
+	        clearText: "Clear Color Selection",
+	        noColorSelectedText: "No Color Selected",
+	        preferredFormat: false,
+	        className: "", // Deprecated - use containerClassName and replacerClassName instead.
+	        containerClassName: "",
+	        replacerClassName: "",
+	        showAlpha: false,
+	        theme: "sp-light",
+	        palette: [["#ffffff", "#000000", "#ff0000", "#ff8000", "#ffff00", "#008000", "#0000ff", "#4b0082", "#9400d3"]],
+	        selectionPalette: [],
+	        disabled: false,
+	        offset: null
+	    },
+	    spectrums = [],
+	    IE = !!/msie/i.exec( window.navigator.userAgent ),
+	    rgbaSupport = (function() {
+	        function contains( str, substr ) {
+	            return !!~('' + str).indexOf(substr);
+	        }
+	
+	        var elem = document.createElement('div');
+	        var style = elem.style;
+	        style.cssText = 'background-color:rgba(0,0,0,.5)';
+	        return contains(style.backgroundColor, 'rgba') || contains(style.backgroundColor, 'hsla');
+	    })(),
+	    replaceInput = [
+	        "<div class='sp-replacer'>",
+	            "<div class='sp-preview'><div class='sp-preview-inner'></div></div>",
+	            "<div class='sp-dd'>&#9660;</div>",
+	        "</div>"
+	    ].join(''),
+	    markup = (function () {
+	
+	        // IE does not support gradients with multiple stops, so we need to simulate
+	        //  that for the rainbow slider with 8 divs that each have a single gradient
+	        var gradientFix = "";
+	        if (IE) {
+	            for (var i = 1; i <= 6; i++) {
+	                gradientFix += "<div class='sp-" + i + "'></div>";
+	            }
+	        }
+	
+	        return [
+	            "<div class='sp-container sp-hidden'>",
+	                "<div class='sp-palette-container'>",
+	                    "<div class='sp-palette sp-thumb sp-cf'></div>",
+	                    "<div class='sp-palette-button-container sp-cf'>",
+	                        "<button type='button' class='sp-palette-toggle'></button>",
+	                    "</div>",
+	                "</div>",
+	                "<div class='sp-picker-container'>",
+	                    "<div class='sp-top sp-cf'>",
+	                        "<div class='sp-fill'></div>",
+	                        "<div class='sp-top-inner'>",
+	                            "<div class='sp-color'>",
+	                                "<div class='sp-sat'>",
+	                                    "<div class='sp-val'>",
+	                                        "<div class='sp-dragger'></div>",
+	                                    "</div>",
+	                                "</div>",
+	                            "</div>",
+	                            "<div class='sp-clear sp-clear-display'>",
+	                            "</div>",
+	                            "<div class='sp-hue'>",
+	                                "<div class='sp-slider'></div>",
+	                                gradientFix,
+	                            "</div>",
+	                        "</div>",
+	                        "<div class='sp-alpha'><div class='sp-alpha-inner'><div class='sp-alpha-handle'></div></div></div>",
+	                    "</div>",
+	                    "<div class='sp-input-container sp-cf'>",
+	                        "<input class='sp-input' type='text' spellcheck='false'  />",
+	                    "</div>",
+	                    "<div class='sp-initial sp-thumb sp-cf'></div>",
+	                    "<div class='sp-button-container sp-cf'>",
+	                        "<a class='sp-cancel' href='#'></a>",
+	                        "<button type='button' class='sp-choose'></button>",
+	                    "</div>",
+	                "</div>",
+	            "</div>"
+	        ].join("");
+	    })();
+	
+	    function paletteTemplate (p, color, className, opts) {
+	        var html = [];
+	        for (var i = 0; i < p.length; i++) {
+	            var current = p[i];
+	            if(current) {
+	                var tiny = tinycolor(current);
+	                var c = tiny.toHsl().l < 0.5 ? "sp-thumb-el sp-thumb-dark" : "sp-thumb-el sp-thumb-light";
+	                c += (tinycolor.equals(color, current)) ? " sp-thumb-active" : "";
+	                var formattedString = tiny.toString(opts.preferredFormat || "rgb");
+	                var swatchStyle = rgbaSupport ? ("background-color:" + tiny.toRgbString()) : "filter:" + tiny.toFilter();
+	                html.push('<span title="' + formattedString + '" data-color="' + tiny.toRgbString() + '" class="' + c + '"><span class="sp-thumb-inner" style="' + swatchStyle + ';" /></span>');
+	            } else {
+	                var cls = 'sp-clear-display';
+	                html.push($('<div />')
+	                    .append($('<span data-color="" style="background-color:transparent;" class="' + cls + '"></span>')
+	                        .attr('title', opts.noColorSelectedText)
+	                    )
+	                    .html()
+	                );
+	            }
+	        }
+	        return "<div class='sp-cf " + className + "'>" + html.join('') + "</div>";
+	    }
+	
+	    function hideAll() {
+	        for (var i = 0; i < spectrums.length; i++) {
+	            if (spectrums[i]) {
+	                spectrums[i].hide();
+	            }
+	        }
+	    }
+	
+	    function instanceOptions(o, callbackContext) {
+	        var opts = $.extend({}, defaultOpts, o);
+	        opts.callbacks = {
+	            'move': bind(opts.move, callbackContext),
+	            'change': bind(opts.change, callbackContext),
+	            'show': bind(opts.show, callbackContext),
+	            'hide': bind(opts.hide, callbackContext),
+	            'beforeShow': bind(opts.beforeShow, callbackContext)
+	        };
+	
+	        return opts;
+	    }
+	
+	    function spectrum(element, o) {
+	
+	        var opts = instanceOptions(o, element),
+	            flat = opts.flat,
+	            showSelectionPalette = opts.showSelectionPalette,
+	            localStorageKey = opts.localStorageKey,
+	            theme = opts.theme,
+	            callbacks = opts.callbacks,
+	            resize = throttle(reflow, 10),
+	            visible = false,
+	            isDragging = false,
+	            dragWidth = 0,
+	            dragHeight = 0,
+	            dragHelperHeight = 0,
+	            slideHeight = 0,
+	            slideWidth = 0,
+	            alphaWidth = 0,
+	            alphaSlideHelperWidth = 0,
+	            slideHelperHeight = 0,
+	            currentHue = 0,
+	            currentSaturation = 0,
+	            currentValue = 0,
+	            currentAlpha = 1,
+	            palette = [],
+	            paletteArray = [],
+	            paletteLookup = {},
+	            selectionPalette = opts.selectionPalette.slice(0),
+	            maxSelectionSize = opts.maxSelectionSize,
+	            draggingClass = "sp-dragging",
+	            shiftMovementDirection = null;
+	
+	        var doc = element.ownerDocument,
+	            body = doc.body,
+	            boundElement = $(element),
+	            disabled = false,
+	            container = $(markup, doc).addClass(theme),
+	            pickerContainer = container.find(".sp-picker-container"),
+	            dragger = container.find(".sp-color"),
+	            dragHelper = container.find(".sp-dragger"),
+	            slider = container.find(".sp-hue"),
+	            slideHelper = container.find(".sp-slider"),
+	            alphaSliderInner = container.find(".sp-alpha-inner"),
+	            alphaSlider = container.find(".sp-alpha"),
+	            alphaSlideHelper = container.find(".sp-alpha-handle"),
+	            textInput = container.find(".sp-input"),
+	            paletteContainer = container.find(".sp-palette"),
+	            initialColorContainer = container.find(".sp-initial"),
+	            cancelButton = container.find(".sp-cancel"),
+	            clearButton = container.find(".sp-clear"),
+	            chooseButton = container.find(".sp-choose"),
+	            toggleButton = container.find(".sp-palette-toggle"),
+	            isInput = boundElement.is("input"),
+	            isInputTypeColor = isInput && boundElement.attr("type") === "color" && inputTypeColorSupport(),
+	            shouldReplace = isInput && !flat,
+	            replacer = (shouldReplace) ? $(replaceInput).addClass(theme).addClass(opts.className).addClass(opts.replacerClassName) : $([]),
+	            offsetElement = (shouldReplace) ? replacer : boundElement,
+	            previewElement = replacer.find(".sp-preview-inner"),
+	            initialColor = opts.color || (isInput && boundElement.val()),
+	            colorOnShow = false,
+	            currentPreferredFormat = opts.preferredFormat,
+	            clickoutFiresChange = !opts.showButtons || opts.clickoutFiresChange,
+	            isEmpty = !initialColor,
+	            allowEmpty = opts.allowEmpty && !isInputTypeColor;
+	
+	        function applyOptions() {
+	
+	            if (opts.showPaletteOnly) {
+	                opts.showPalette = true;
+	            }
+	
+	            toggleButton.text(opts.showPaletteOnly ? opts.togglePaletteMoreText : opts.togglePaletteLessText);
+	
+	            if (opts.palette) {
+	                palette = opts.palette.slice(0);
+	                paletteArray = $.isArray(palette[0]) ? palette : [palette];
+	                paletteLookup = {};
+	                for (var i = 0; i < paletteArray.length; i++) {
+	                    for (var j = 0; j < paletteArray[i].length; j++) {
+	                        var rgb = tinycolor(paletteArray[i][j]).toRgbString();
+	                        paletteLookup[rgb] = true;
+	                    }
+	                }
+	            }
+	
+	            container.toggleClass("sp-flat", flat);
+	            container.toggleClass("sp-input-disabled", !opts.showInput);
+	            container.toggleClass("sp-alpha-enabled", opts.showAlpha);
+	            container.toggleClass("sp-clear-enabled", allowEmpty);
+	            container.toggleClass("sp-buttons-disabled", !opts.showButtons);
+	            container.toggleClass("sp-palette-buttons-disabled", !opts.togglePaletteOnly);
+	            container.toggleClass("sp-palette-disabled", !opts.showPalette);
+	            container.toggleClass("sp-palette-only", opts.showPaletteOnly);
+	            container.toggleClass("sp-initial-disabled", !opts.showInitial);
+	            container.addClass(opts.className).addClass(opts.containerClassName);
+	
+	            reflow();
+	        }
+	
+	        function initialize() {
+	
+	            if (IE) {
+	                container.find("*:not(input)").attr("unselectable", "on");
+	            }
+	
+	            applyOptions();
+	
+	            if (shouldReplace) {
+	                boundElement.after(replacer).hide();
+	            }
+	
+	            if (!allowEmpty) {
+	                clearButton.hide();
+	            }
+	
+	            if (flat) {
+	                boundElement.after(container).hide();
+	            }
+	            else {
+	
+	                var appendTo = opts.appendTo === "parent" ? boundElement.parent() : $(opts.appendTo);
+	                if (appendTo.length !== 1) {
+	                    appendTo = $("body");
+	                }
+	
+	                appendTo.append(container);
+	            }
+	
+	            updateSelectionPaletteFromStorage();
+	
+	            offsetElement.bind("click.spectrum touchstart.spectrum", function (e) {
+	                if (!disabled) {
+	                    toggle();
+	                }
+	
+	                e.stopPropagation();
+	
+	                if (!$(e.target).is("input")) {
+	                    e.preventDefault();
+	                }
+	            });
+	
+	            if(boundElement.is(":disabled") || (opts.disabled === true)) {
+	                disable();
+	            }
+	
+	            // Prevent clicks from bubbling up to document.  This would cause it to be hidden.
+	            container.click(stopPropagation);
+	
+	            // Handle user typed input
+	            textInput.change(setFromTextInput);
+	            textInput.bind("paste", function () {
+	                setTimeout(setFromTextInput, 1);
+	            });
+	            textInput.keydown(function (e) { if (e.keyCode == 13) { setFromTextInput(); } });
+	
+	            cancelButton.text(opts.cancelText);
+	            cancelButton.bind("click.spectrum", function (e) {
+	                e.stopPropagation();
+	                e.preventDefault();
+	                revert();
+	                hide();
+	            });
+	
+	            clearButton.attr("title", opts.clearText);
+	            clearButton.bind("click.spectrum", function (e) {
+	                e.stopPropagation();
+	                e.preventDefault();
+	                isEmpty = true;
+	                move();
+	
+	                if(flat) {
+	                    //for the flat style, this is a change event
+	                    updateOriginalInput(true);
+	                }
+	            });
+	
+	            chooseButton.text(opts.chooseText);
+	            chooseButton.bind("click.spectrum", function (e) {
+	                e.stopPropagation();
+	                e.preventDefault();
+	
+	                if (IE && textInput.is(":focus")) {
+	                    textInput.trigger('change');
+	                }
+	
+	                if (isValid()) {
+	                    updateOriginalInput(true);
+	                    hide();
+	                }
+	            });
+	
+	            toggleButton.text(opts.showPaletteOnly ? opts.togglePaletteMoreText : opts.togglePaletteLessText);
+	            toggleButton.bind("click.spectrum", function (e) {
+	                e.stopPropagation();
+	                e.preventDefault();
+	
+	                opts.showPaletteOnly = !opts.showPaletteOnly;
+	
+	                // To make sure the Picker area is drawn on the right, next to the
+	                // Palette area (and not below the palette), first move the Palette
+	                // to the left to make space for the picker, plus 5px extra.
+	                // The 'applyOptions' function puts the whole container back into place
+	                // and takes care of the button-text and the sp-palette-only CSS class.
+	                if (!opts.showPaletteOnly && !flat) {
+	                    container.css('left', '-=' + (pickerContainer.outerWidth(true) + 5));
+	                }
+	                applyOptions();
+	            });
+	
+	            draggable(alphaSlider, function (dragX, dragY, e) {
+	                currentAlpha = (dragX / alphaWidth);
+	                isEmpty = false;
+	                if (e.shiftKey) {
+	                    currentAlpha = Math.round(currentAlpha * 10) / 10;
+	                }
+	
+	                move();
+	            }, dragStart, dragStop);
+	
+	            draggable(slider, function (dragX, dragY) {
+	                currentHue = parseFloat(dragY / slideHeight);
+	                isEmpty = false;
+	                if (!opts.showAlpha) {
+	                    currentAlpha = 1;
+	                }
+	                move();
+	            }, dragStart, dragStop);
+	
+	            draggable(dragger, function (dragX, dragY, e) {
+	
+	                // shift+drag should snap the movement to either the x or y axis.
+	                if (!e.shiftKey) {
+	                    shiftMovementDirection = null;
+	                }
+	                else if (!shiftMovementDirection) {
+	                    var oldDragX = currentSaturation * dragWidth;
+	                    var oldDragY = dragHeight - (currentValue * dragHeight);
+	                    var furtherFromX = Math.abs(dragX - oldDragX) > Math.abs(dragY - oldDragY);
+	
+	                    shiftMovementDirection = furtherFromX ? "x" : "y";
+	                }
+	
+	                var setSaturation = !shiftMovementDirection || shiftMovementDirection === "x";
+	                var setValue = !shiftMovementDirection || shiftMovementDirection === "y";
+	
+	                if (setSaturation) {
+	                    currentSaturation = parseFloat(dragX / dragWidth);
+	                }
+	                if (setValue) {
+	                    currentValue = parseFloat((dragHeight - dragY) / dragHeight);
+	                }
+	
+	                isEmpty = false;
+	                if (!opts.showAlpha) {
+	                    currentAlpha = 1;
+	                }
+	
+	                move();
+	
+	            }, dragStart, dragStop);
+	
+	            if (!!initialColor) {
+	                set(initialColor);
+	
+	                // In case color was black - update the preview UI and set the format
+	                // since the set function will not run (default color is black).
+	                updateUI();
+	                currentPreferredFormat = opts.preferredFormat || tinycolor(initialColor).format;
+	
+	                addColorToSelectionPalette(initialColor);
+	            }
+	            else {
+	                updateUI();
+	            }
+	
+	            if (flat) {
+	                show();
+	            }
+	
+	            function paletteElementClick(e) {
+	                if (e.data && e.data.ignore) {
+	                    set($(e.target).closest(".sp-thumb-el").data("color"));
+	                    move();
+	                }
+	                else {
+	                    set($(e.target).closest(".sp-thumb-el").data("color"));
+	                    move();
+	                    updateOriginalInput(true);
+	                    if (opts.hideAfterPaletteSelect) {
+	                      hide();
+	                    }
+	                }
+	
+	                return false;
+	            }
+	
+	            var paletteEvent = IE ? "mousedown.spectrum" : "click.spectrum touchstart.spectrum";
+	            paletteContainer.delegate(".sp-thumb-el", paletteEvent, paletteElementClick);
+	            initialColorContainer.delegate(".sp-thumb-el:nth-child(1)", paletteEvent, { ignore: true }, paletteElementClick);
+	        }
+	
+	        function updateSelectionPaletteFromStorage() {
+	
+	            if (localStorageKey && window.localStorage) {
+	
+	                // Migrate old palettes over to new format.  May want to remove this eventually.
+	                try {
+	                    var oldPalette = window.localStorage[localStorageKey].split(",#");
+	                    if (oldPalette.length > 1) {
+	                        delete window.localStorage[localStorageKey];
+	                        $.each(oldPalette, function(i, c) {
+	                             addColorToSelectionPalette(c);
+	                        });
+	                    }
+	                }
+	                catch(e) { }
+	
+	                try {
+	                    selectionPalette = window.localStorage[localStorageKey].split(";");
+	                }
+	                catch (e) { }
+	            }
+	        }
+	
+	        function addColorToSelectionPalette(color) {
+	            if (showSelectionPalette) {
+	                var rgb = tinycolor(color).toRgbString();
+	                if (!paletteLookup[rgb] && $.inArray(rgb, selectionPalette) === -1) {
+	                    selectionPalette.push(rgb);
+	                    while(selectionPalette.length > maxSelectionSize) {
+	                        selectionPalette.shift();
+	                    }
+	                }
+	
+	                if (localStorageKey && window.localStorage) {
+	                    try {
+	                        window.localStorage[localStorageKey] = selectionPalette.join(";");
+	                    }
+	                    catch(e) { }
+	                }
+	            }
+	        }
+	
+	        function getUniqueSelectionPalette() {
+	            var unique = [];
+	            if (opts.showPalette) {
+	                for (var i = 0; i < selectionPalette.length; i++) {
+	                    var rgb = tinycolor(selectionPalette[i]).toRgbString();
+	
+	                    if (!paletteLookup[rgb]) {
+	                        unique.push(selectionPalette[i]);
+	                    }
+	                }
+	            }
+	
+	            return unique.reverse().slice(0, opts.maxSelectionSize);
+	        }
+	
+	        function drawPalette() {
+	
+	            var currentColor = get();
+	
+	            var html = $.map(paletteArray, function (palette, i) {
+	                return paletteTemplate(palette, currentColor, "sp-palette-row sp-palette-row-" + i, opts);
+	            });
+	
+	            updateSelectionPaletteFromStorage();
+	
+	            if (selectionPalette) {
+	                html.push(paletteTemplate(getUniqueSelectionPalette(), currentColor, "sp-palette-row sp-palette-row-selection", opts));
+	            }
+	
+	            paletteContainer.html(html.join(""));
+	        }
+	
+	        function drawInitial() {
+	            if (opts.showInitial) {
+	                var initial = colorOnShow;
+	                var current = get();
+	                initialColorContainer.html(paletteTemplate([initial, current], current, "sp-palette-row-initial", opts));
+	            }
+	        }
+	
+	        function dragStart() {
+	            if (dragHeight <= 0 || dragWidth <= 0 || slideHeight <= 0) {
+	                reflow();
+	            }
+	            isDragging = true;
+	            container.addClass(draggingClass);
+	            shiftMovementDirection = null;
+	            boundElement.trigger('dragstart.spectrum', [ get() ]);
+	        }
+	
+	        function dragStop() {
+	            isDragging = false;
+	            container.removeClass(draggingClass);
+	            boundElement.trigger('dragstop.spectrum', [ get() ]);
+	        }
+	
+	        function setFromTextInput() {
+	
+	            var value = textInput.val();
+	
+	            if ((value === null || value === "") && allowEmpty) {
+	                set(null);
+	                updateOriginalInput(true);
+	            }
+	            else {
+	                var tiny = tinycolor(value);
+	                if (tiny.isValid()) {
+	                    set(tiny);
+	                    updateOriginalInput(true);
+	                }
+	                else {
+	                    textInput.addClass("sp-validation-error");
+	                }
+	            }
+	        }
+	
+	        function toggle() {
+	            if (visible) {
+	                hide();
+	            }
+	            else {
+	                show();
+	            }
+	        }
+	
+	        function show() {
+	            var event = $.Event('beforeShow.spectrum');
+	
+	            if (visible) {
+	                reflow();
+	                return;
+	            }
+	
+	            boundElement.trigger(event, [ get() ]);
+	
+	            if (callbacks.beforeShow(get()) === false || event.isDefaultPrevented()) {
+	                return;
+	            }
+	
+	            hideAll();
+	            visible = true;
+	
+	            $(doc).bind("keydown.spectrum", onkeydown);
+	            $(doc).bind("click.spectrum", clickout);
+	            $(window).bind("resize.spectrum", resize);
+	            replacer.addClass("sp-active");
+	            container.removeClass("sp-hidden");
+	
+	            reflow();
+	            updateUI();
+	
+	            colorOnShow = get();
+	
+	            drawInitial();
+	            callbacks.show(colorOnShow);
+	            boundElement.trigger('show.spectrum', [ colorOnShow ]);
+	        }
+	
+	        function onkeydown(e) {
+	            // Close on ESC
+	            if (e.keyCode === 27) {
+	                hide();
+	            }
+	        }
+	
+	        function clickout(e) {
+	            // Return on right click.
+	            if (e.button == 2) { return; }
+	
+	            // If a drag event was happening during the mouseup, don't hide
+	            // on click.
+	            if (isDragging) { return; }
+	
+	            if (clickoutFiresChange) {
+	                updateOriginalInput(true);
+	            }
+	            else {
+	                revert();
+	            }
+	            hide();
+	        }
+	
+	        function hide() {
+	            // Return if hiding is unnecessary
+	            if (!visible || flat) { return; }
+	            visible = false;
+	
+	            $(doc).unbind("keydown.spectrum", onkeydown);
+	            $(doc).unbind("click.spectrum", clickout);
+	            $(window).unbind("resize.spectrum", resize);
+	
+	            replacer.removeClass("sp-active");
+	            container.addClass("sp-hidden");
+	
+	            callbacks.hide(get());
+	            boundElement.trigger('hide.spectrum', [ get() ]);
+	        }
+	
+	        function revert() {
+	            set(colorOnShow, true);
+	        }
+	
+	        function set(color, ignoreFormatChange) {
+	            if (tinycolor.equals(color, get())) {
+	                // Update UI just in case a validation error needs
+	                // to be cleared.
+	                updateUI();
+	                return;
+	            }
+	
+	            var newColor, newHsv;
+	            if (!color && allowEmpty) {
+	                isEmpty = true;
+	            } else {
+	                isEmpty = false;
+	                newColor = tinycolor(color);
+	                newHsv = newColor.toHsv();
+	
+	                currentHue = (newHsv.h % 360) / 360;
+	                currentSaturation = newHsv.s;
+	                currentValue = newHsv.v;
+	                currentAlpha = newHsv.a;
+	            }
+	            updateUI();
+	
+	            if (newColor && newColor.isValid() && !ignoreFormatChange) {
+	                currentPreferredFormat = opts.preferredFormat || newColor.getFormat();
+	            }
+	        }
+	
+	        function get(opts) {
+	            opts = opts || { };
+	
+	            if (allowEmpty && isEmpty) {
+	                return null;
+	            }
+	
+	            return tinycolor.fromRatio({
+	                h: currentHue,
+	                s: currentSaturation,
+	                v: currentValue,
+	                a: Math.round(currentAlpha * 100) / 100
+	            }, { format: opts.format || currentPreferredFormat });
+	        }
+	
+	        function isValid() {
+	            return !textInput.hasClass("sp-validation-error");
+	        }
+	
+	        function move() {
+	            updateUI();
+	
+	            callbacks.move(get());
+	            boundElement.trigger('move.spectrum', [ get() ]);
+	        }
+	
+	        function updateUI() {
+	
+	            textInput.removeClass("sp-validation-error");
+	
+	            updateHelperLocations();
+	
+	            // Update dragger background color (gradients take care of saturation and value).
+	            var flatColor = tinycolor.fromRatio({ h: currentHue, s: 1, v: 1 });
+	            dragger.css("background-color", flatColor.toHexString());
+	
+	            // Get a format that alpha will be included in (hex and names ignore alpha)
+	            var format = currentPreferredFormat;
+	            if (currentAlpha < 1 && !(currentAlpha === 0 && format === "name")) {
+	                if (format === "hex" || format === "hex3" || format === "hex6" || format === "name") {
+	                    format = "rgb";
+	                }
+	            }
+	
+	            var realColor = get({ format: format }),
+	                displayColor = '';
+	
+	             //reset background info for preview element
+	            previewElement.removeClass("sp-clear-display");
+	            previewElement.css('background-color', 'transparent');
+	
+	            if (!realColor && allowEmpty) {
+	                // Update the replaced elements background with icon indicating no color selection
+	                previewElement.addClass("sp-clear-display");
+	            }
+	            else {
+	                var realHex = realColor.toHexString(),
+	                    realRgb = realColor.toRgbString();
+	
+	                // Update the replaced elements background color (with actual selected color)
+	                if (rgbaSupport || realColor.alpha === 1) {
+	                    previewElement.css("background-color", realRgb);
+	                }
+	                else {
+	                    previewElement.css("background-color", "transparent");
+	                    previewElement.css("filter", realColor.toFilter());
+	                }
+	
+	                if (opts.showAlpha) {
+	                    var rgb = realColor.toRgb();
+	                    rgb.a = 0;
+	                    var realAlpha = tinycolor(rgb).toRgbString();
+	                    var gradient = "linear-gradient(left, " + realAlpha + ", " + realHex + ")";
+	
+	                    if (IE) {
+	                        alphaSliderInner.css("filter", tinycolor(realAlpha).toFilter({ gradientType: 1 }, realHex));
+	                    }
+	                    else {
+	                        alphaSliderInner.css("background", "-webkit-" + gradient);
+	                        alphaSliderInner.css("background", "-moz-" + gradient);
+	                        alphaSliderInner.css("background", "-ms-" + gradient);
+	                        // Use current syntax gradient on unprefixed property.
+	                        alphaSliderInner.css("background",
+	                            "linear-gradient(to right, " + realAlpha + ", " + realHex + ")");
+	                    }
+	                }
+	
+	                displayColor = realColor.toString(format);
+	            }
+	
+	            // Update the text entry input as it changes happen
+	            if (opts.showInput) {
+	                textInput.val(displayColor);
+	            }
+	
+	            if (opts.showPalette) {
+	                drawPalette();
+	            }
+	
+	            drawInitial();
+	        }
+	
+	        function updateHelperLocations() {
+	            var s = currentSaturation;
+	            var v = currentValue;
+	
+	            if(allowEmpty && isEmpty) {
+	                //if selected color is empty, hide the helpers
+	                alphaSlideHelper.hide();
+	                slideHelper.hide();
+	                dragHelper.hide();
+	            }
+	            else {
+	                //make sure helpers are visible
+	                alphaSlideHelper.show();
+	                slideHelper.show();
+	                dragHelper.show();
+	
+	                // Where to show the little circle in that displays your current selected color
+	                var dragX = s * dragWidth;
+	                var dragY = dragHeight - (v * dragHeight);
+	                dragX = Math.max(
+	                    -dragHelperHeight,
+	                    Math.min(dragWidth - dragHelperHeight, dragX - dragHelperHeight)
+	                );
+	                dragY = Math.max(
+	                    -dragHelperHeight,
+	                    Math.min(dragHeight - dragHelperHeight, dragY - dragHelperHeight)
+	                );
+	                dragHelper.css({
+	                    "top": dragY + "px",
+	                    "left": dragX + "px"
+	                });
+	
+	                var alphaX = currentAlpha * alphaWidth;
+	                alphaSlideHelper.css({
+	                    "left": (alphaX - (alphaSlideHelperWidth / 2)) + "px"
+	                });
+	
+	                // Where to show the bar that displays your current selected hue
+	                var slideY = (currentHue) * slideHeight;
+	                slideHelper.css({
+	                    "top": (slideY - slideHelperHeight) + "px"
+	                });
+	            }
+	        }
+	
+	        function updateOriginalInput(fireCallback) {
+	            var color = get(),
+	                displayColor = '',
+	                hasChanged = !tinycolor.equals(color, colorOnShow);
+	
+	            if (color) {
+	                displayColor = color.toString(currentPreferredFormat);
+	                // Update the selection palette with the current color
+	                addColorToSelectionPalette(color);
+	            }
+	
+	            if (isInput) {
+	                boundElement.val(displayColor);
+	            }
+	
+	            if (fireCallback && hasChanged) {
+	                callbacks.change(color);
+	                boundElement.trigger('change', [ color ]);
+	            }
+	        }
+	
+	        function reflow() {
+	            if (!visible) {
+	                return; // Calculations would be useless and wouldn't be reliable anyways
+	            }
+	            dragWidth = dragger.width();
+	            dragHeight = dragger.height();
+	            dragHelperHeight = dragHelper.height();
+	            slideWidth = slider.width();
+	            slideHeight = slider.height();
+	            slideHelperHeight = slideHelper.height();
+	            alphaWidth = alphaSlider.width();
+	            alphaSlideHelperWidth = alphaSlideHelper.width();
+	
+	            if (!flat) {
+	                container.css("position", "absolute");
+	                if (opts.offset) {
+	                    container.offset(opts.offset);
+	                } else {
+	                    container.offset(getOffset(container, offsetElement));
+	                }
+	            }
+	
+	            updateHelperLocations();
+	
+	            if (opts.showPalette) {
+	                drawPalette();
+	            }
+	
+	            boundElement.trigger('reflow.spectrum');
+	        }
+	
+	        function destroy() {
+	            boundElement.show();
+	            offsetElement.unbind("click.spectrum touchstart.spectrum");
+	            container.remove();
+	            replacer.remove();
+	            spectrums[spect.id] = null;
+	        }
+	
+	        function option(optionName, optionValue) {
+	            if (optionName === undefined) {
+	                return $.extend({}, opts);
+	            }
+	            if (optionValue === undefined) {
+	                return opts[optionName];
+	            }
+	
+	            opts[optionName] = optionValue;
+	
+	            if (optionName === "preferredFormat") {
+	                currentPreferredFormat = opts.preferredFormat;
+	            }
+	            applyOptions();
+	        }
+	
+	        function enable() {
+	            disabled = false;
+	            boundElement.attr("disabled", false);
+	            offsetElement.removeClass("sp-disabled");
+	        }
+	
+	        function disable() {
+	            hide();
+	            disabled = true;
+	            boundElement.attr("disabled", true);
+	            offsetElement.addClass("sp-disabled");
+	        }
+	
+	        function setOffset(coord) {
+	            opts.offset = coord;
+	            reflow();
+	        }
+	
+	        initialize();
+	
+	        var spect = {
+	            show: show,
+	            hide: hide,
+	            toggle: toggle,
+	            reflow: reflow,
+	            option: option,
+	            enable: enable,
+	            disable: disable,
+	            offset: setOffset,
+	            set: function (c) {
+	                set(c);
+	                updateOriginalInput();
+	            },
+	            get: get,
+	            destroy: destroy,
+	            container: container
+	        };
+	
+	        spect.id = spectrums.push(spect) - 1;
+	
+	        return spect;
+	    }
+	
+	    /**
+	    * checkOffset - get the offset below/above and left/right element depending on screen position
+	    * Thanks https://github.com/jquery/jquery-ui/blob/master/ui/jquery.ui.datepicker.js
+	    */
+	    function getOffset(picker, input) {
+	        var extraY = 0;
+	        var dpWidth = picker.outerWidth();
+	        var dpHeight = picker.outerHeight();
+	        var inputHeight = input.outerHeight();
+	        var doc = picker[0].ownerDocument;
+	        var docElem = doc.documentElement;
+	        var viewWidth = docElem.clientWidth + $(doc).scrollLeft();
+	        var viewHeight = docElem.clientHeight + $(doc).scrollTop();
+	        var offset = input.offset();
+	        offset.top += inputHeight;
+	
+	        offset.left -=
+	            Math.min(offset.left, (offset.left + dpWidth > viewWidth && viewWidth > dpWidth) ?
+	            Math.abs(offset.left + dpWidth - viewWidth) : 0);
+	
+	        offset.top -=
+	            Math.min(offset.top, ((offset.top + dpHeight > viewHeight && viewHeight > dpHeight) ?
+	            Math.abs(dpHeight + inputHeight - extraY) : extraY));
+	
+	        return offset;
+	    }
+	
+	    /**
+	    * noop - do nothing
+	    */
+	    function noop() {
+	
+	    }
+	
+	    /**
+	    * stopPropagation - makes the code only doing this a little easier to read in line
+	    */
+	    function stopPropagation(e) {
+	        e.stopPropagation();
+	    }
+	
+	    /**
+	    * Create a function bound to a given object
+	    * Thanks to underscore.js
+	    */
+	    function bind(func, obj) {
+	        var slice = Array.prototype.slice;
+	        var args = slice.call(arguments, 2);
+	        return function () {
+	            return func.apply(obj, args.concat(slice.call(arguments)));
+	        };
+	    }
+	
+	    /**
+	    * Lightweight drag helper.  Handles containment within the element, so that
+	    * when dragging, the x is within [0,element.width] and y is within [0,element.height]
+	    */
+	    function draggable(element, onmove, onstart, onstop) {
+	        onmove = onmove || function () { };
+	        onstart = onstart || function () { };
+	        onstop = onstop || function () { };
+	        var doc = document;
+	        var dragging = false;
+	        var offset = {};
+	        var maxHeight = 0;
+	        var maxWidth = 0;
+	        var hasTouch = ('ontouchstart' in window);
+	
+	        var duringDragEvents = {};
+	        duringDragEvents["selectstart"] = prevent;
+	        duringDragEvents["dragstart"] = prevent;
+	        duringDragEvents["touchmove mousemove"] = move;
+	        duringDragEvents["touchend mouseup"] = stop;
+	
+	        function prevent(e) {
+	            if (e.stopPropagation) {
+	                e.stopPropagation();
+	            }
+	            if (e.preventDefault) {
+	                e.preventDefault();
+	            }
+	            e.returnValue = false;
+	        }
+	
+	        function move(e) {
+	            if (dragging) {
+	                // Mouseup happened outside of window
+	                if (IE && doc.documentMode < 9 && !e.button) {
+	                    return stop();
+	                }
+	
+	                var t0 = e.originalEvent && e.originalEvent.touches && e.originalEvent.touches[0];
+	                var pageX = t0 && t0.pageX || e.pageX;
+	                var pageY = t0 && t0.pageY || e.pageY;
+	
+	                var dragX = Math.max(0, Math.min(pageX - offset.left, maxWidth));
+	                var dragY = Math.max(0, Math.min(pageY - offset.top, maxHeight));
+	
+	                if (hasTouch) {
+	                    // Stop scrolling in iOS
+	                    prevent(e);
+	                }
+	
+	                onmove.apply(element, [dragX, dragY, e]);
+	            }
+	        }
+	
+	        function start(e) {
+	            var rightclick = (e.which) ? (e.which == 3) : (e.button == 2);
+	
+	            if (!rightclick && !dragging) {
+	                if (onstart.apply(element, arguments) !== false) {
+	                    dragging = true;
+	                    maxHeight = $(element).height();
+	                    maxWidth = $(element).width();
+	                    offset = $(element).offset();
+	
+	                    $(doc).bind(duringDragEvents);
+	                    $(doc.body).addClass("sp-dragging");
+	
+	                    move(e);
+	
+	                    prevent(e);
+	                }
+	            }
+	        }
+	
+	        function stop() {
+	            if (dragging) {
+	                $(doc).unbind(duringDragEvents);
+	                $(doc.body).removeClass("sp-dragging");
+	
+	                // Wait a tick before notifying observers to allow the click event
+	                // to fire in Chrome.
+	                setTimeout(function() {
+	                    onstop.apply(element, arguments);
+	                }, 0);
+	            }
+	            dragging = false;
+	        }
+	
+	        $(element).bind("touchstart mousedown", start);
+	    }
+	
+	    function throttle(func, wait, debounce) {
+	        var timeout;
+	        return function () {
+	            var context = this, args = arguments;
+	            var throttler = function () {
+	                timeout = null;
+	                func.apply(context, args);
+	            };
+	            if (debounce) clearTimeout(timeout);
+	            if (debounce || !timeout) timeout = setTimeout(throttler, wait);
+	        };
+	    }
+	
+	    function inputTypeColorSupport() {
+	        return $.fn.spectrum.inputTypeColorSupport();
+	    }
+	
+	    /**
+	    * Define a jQuery plugin
+	    */
+	    var dataID = "spectrum.id";
+	    $.fn.spectrum = function (opts, extra) {
+	
+	        if (typeof opts == "string") {
+	
+	            var returnValue = this;
+	            var args = Array.prototype.slice.call( arguments, 1 );
+	
+	            this.each(function () {
+	                var spect = spectrums[$(this).data(dataID)];
+	                if (spect) {
+	                    var method = spect[opts];
+	                    if (!method) {
+	                        throw new Error( "Spectrum: no such method: '" + opts + "'" );
+	                    }
+	
+	                    if (opts == "get") {
+	                        returnValue = spect.get();
+	                    }
+	                    else if (opts == "container") {
+	                        returnValue = spect.container;
+	                    }
+	                    else if (opts == "option") {
+	                        returnValue = spect.option.apply(spect, args);
+	                    }
+	                    else if (opts == "destroy") {
+	                        spect.destroy();
+	                        $(this).removeData(dataID);
+	                    }
+	                    else {
+	                        method.apply(spect, args);
+	                    }
+	                }
+	            });
+	
+	            return returnValue;
+	        }
+	
+	        // Initializing a new instance of spectrum
+	        return this.spectrum("destroy").each(function () {
+	            var options = $.extend({}, opts, $(this).data());
+	            var spect = spectrum(this, options);
+	            $(this).data(dataID, spect.id);
+	        });
+	    };
+	
+	    $.fn.spectrum.load = true;
+	    $.fn.spectrum.loadOpts = {};
+	    $.fn.spectrum.draggable = draggable;
+	    $.fn.spectrum.defaults = defaultOpts;
+	    $.fn.spectrum.inputTypeColorSupport = function inputTypeColorSupport() {
+	        if (typeof inputTypeColorSupport._cachedResult === "undefined") {
+	            var colorInput = $("<input type='color'/>")[0]; // if color element is supported, value will default to not null
+	            inputTypeColorSupport._cachedResult = colorInput.type === "color" && colorInput.value !== "";
+	        }
+	        return inputTypeColorSupport._cachedResult;
+	    };
+	
+	    $.spectrum = { };
+	    $.spectrum.localization = { };
+	    $.spectrum.palettes = { };
+	
+	    $.fn.spectrum.processNativeColorInputs = function () {
+	        var colorInputs = $("input[type=color]");
+	        if (colorInputs.length && !inputTypeColorSupport()) {
+	            colorInputs.spectrum({
+	                preferredFormat: "hex6"
+	            });
+	        }
+	    };
+	
+	    // TinyColor v1.1.2
+	    // https://github.com/bgrins/TinyColor
+	    // Brian Grinstead, MIT License
+	
+	    (function() {
+	
+	    var trimLeft = /^[\s,#]+/,
+	        trimRight = /\s+$/,
+	        tinyCounter = 0,
+	        math = Math,
+	        mathRound = math.round,
+	        mathMin = math.min,
+	        mathMax = math.max,
+	        mathRandom = math.random;
+	
+	    var tinycolor = function(color, opts) {
+	
+	        color = (color) ? color : '';
+	        opts = opts || { };
+	
+	        // If input is already a tinycolor, return itself
+	        if (color instanceof tinycolor) {
+	           return color;
+	        }
+	        // If we are called as a function, call using new instead
+	        if (!(this instanceof tinycolor)) {
+	            return new tinycolor(color, opts);
+	        }
+	
+	        var rgb = inputToRGB(color);
+	        this._originalInput = color,
+	        this._r = rgb.r,
+	        this._g = rgb.g,
+	        this._b = rgb.b,
+	        this._a = rgb.a,
+	        this._roundA = mathRound(100*this._a) / 100,
+	        this._format = opts.format || rgb.format;
+	        this._gradientType = opts.gradientType;
+	
+	        // Don't let the range of [0,255] come back in [0,1].
+	        // Potentially lose a little bit of precision here, but will fix issues where
+	        // .5 gets interpreted as half of the total, instead of half of 1
+	        // If it was supposed to be 128, this was already taken care of by `inputToRgb`
+	        if (this._r < 1) { this._r = mathRound(this._r); }
+	        if (this._g < 1) { this._g = mathRound(this._g); }
+	        if (this._b < 1) { this._b = mathRound(this._b); }
+	
+	        this._ok = rgb.ok;
+	        this._tc_id = tinyCounter++;
+	    };
+	
+	    tinycolor.prototype = {
+	        isDark: function() {
+	            return this.getBrightness() < 128;
+	        },
+	        isLight: function() {
+	            return !this.isDark();
+	        },
+	        isValid: function() {
+	            return this._ok;
+	        },
+	        getOriginalInput: function() {
+	          return this._originalInput;
+	        },
+	        getFormat: function() {
+	            return this._format;
+	        },
+	        getAlpha: function() {
+	            return this._a;
+	        },
+	        getBrightness: function() {
+	            var rgb = this.toRgb();
+	            return (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+	        },
+	        setAlpha: function(value) {
+	            this._a = boundAlpha(value);
+	            this._roundA = mathRound(100*this._a) / 100;
+	            return this;
+	        },
+	        toHsv: function() {
+	            var hsv = rgbToHsv(this._r, this._g, this._b);
+	            return { h: hsv.h * 360, s: hsv.s, v: hsv.v, a: this._a };
+	        },
+	        toHsvString: function() {
+	            var hsv = rgbToHsv(this._r, this._g, this._b);
+	            var h = mathRound(hsv.h * 360), s = mathRound(hsv.s * 100), v = mathRound(hsv.v * 100);
+	            return (this._a == 1) ?
+	              "hsv("  + h + ", " + s + "%, " + v + "%)" :
+	              "hsva(" + h + ", " + s + "%, " + v + "%, "+ this._roundA + ")";
+	        },
+	        toHsl: function() {
+	            var hsl = rgbToHsl(this._r, this._g, this._b);
+	            return { h: hsl.h * 360, s: hsl.s, l: hsl.l, a: this._a };
+	        },
+	        toHslString: function() {
+	            var hsl = rgbToHsl(this._r, this._g, this._b);
+	            var h = mathRound(hsl.h * 360), s = mathRound(hsl.s * 100), l = mathRound(hsl.l * 100);
+	            return (this._a == 1) ?
+	              "hsl("  + h + ", " + s + "%, " + l + "%)" :
+	              "hsla(" + h + ", " + s + "%, " + l + "%, "+ this._roundA + ")";
+	        },
+	        toHex: function(allow3Char) {
+	            return rgbToHex(this._r, this._g, this._b, allow3Char);
+	        },
+	        toHexString: function(allow3Char) {
+	            return '#' + this.toHex(allow3Char);
+	        },
+	        toHex8: function() {
+	            return rgbaToHex(this._r, this._g, this._b, this._a);
+	        },
+	        toHex8String: function() {
+	            return '#' + this.toHex8();
+	        },
+	        toRgb: function() {
+	            return { r: mathRound(this._r), g: mathRound(this._g), b: mathRound(this._b), a: this._a };
+	        },
+	        toRgbString: function() {
+	            return (this._a == 1) ?
+	              "rgb("  + mathRound(this._r) + ", " + mathRound(this._g) + ", " + mathRound(this._b) + ")" :
+	              "rgba(" + mathRound(this._r) + ", " + mathRound(this._g) + ", " + mathRound(this._b) + ", " + this._roundA + ")";
+	        },
+	        toPercentageRgb: function() {
+	            return { r: mathRound(bound01(this._r, 255) * 100) + "%", g: mathRound(bound01(this._g, 255) * 100) + "%", b: mathRound(bound01(this._b, 255) * 100) + "%", a: this._a };
+	        },
+	        toPercentageRgbString: function() {
+	            return (this._a == 1) ?
+	              "rgb("  + mathRound(bound01(this._r, 255) * 100) + "%, " + mathRound(bound01(this._g, 255) * 100) + "%, " + mathRound(bound01(this._b, 255) * 100) + "%)" :
+	              "rgba(" + mathRound(bound01(this._r, 255) * 100) + "%, " + mathRound(bound01(this._g, 255) * 100) + "%, " + mathRound(bound01(this._b, 255) * 100) + "%, " + this._roundA + ")";
+	        },
+	        toName: function() {
+	            if (this._a === 0) {
+	                return "transparent";
+	            }
+	
+	            if (this._a < 1) {
+	                return false;
+	            }
+	
+	            return hexNames[rgbToHex(this._r, this._g, this._b, true)] || false;
+	        },
+	        toFilter: function(secondColor) {
+	            var hex8String = '#' + rgbaToHex(this._r, this._g, this._b, this._a);
+	            var secondHex8String = hex8String;
+	            var gradientType = this._gradientType ? "GradientType = 1, " : "";
+	
+	            if (secondColor) {
+	                var s = tinycolor(secondColor);
+	                secondHex8String = s.toHex8String();
+	            }
+	
+	            return "progid:DXImageTransform.Microsoft.gradient("+gradientType+"startColorstr="+hex8String+",endColorstr="+secondHex8String+")";
+	        },
+	        toString: function(format) {
+	            var formatSet = !!format;
+	            format = format || this._format;
+	
+	            var formattedString = false;
+	            var hasAlpha = this._a < 1 && this._a >= 0;
+	            var needsAlphaFormat = !formatSet && hasAlpha && (format === "hex" || format === "hex6" || format === "hex3" || format === "name");
+	
+	            if (needsAlphaFormat) {
+	                // Special case for "transparent", all other non-alpha formats
+	                // will return rgba when there is transparency.
+	                if (format === "name" && this._a === 0) {
+	                    return this.toName();
+	                }
+	                return this.toRgbString();
+	            }
+	            if (format === "rgb") {
+	                formattedString = this.toRgbString();
+	            }
+	            if (format === "prgb") {
+	                formattedString = this.toPercentageRgbString();
+	            }
+	            if (format === "hex" || format === "hex6") {
+	                formattedString = this.toHexString();
+	            }
+	            if (format === "hex3") {
+	                formattedString = this.toHexString(true);
+	            }
+	            if (format === "hex8") {
+	                formattedString = this.toHex8String();
+	            }
+	            if (format === "name") {
+	                formattedString = this.toName();
+	            }
+	            if (format === "hsl") {
+	                formattedString = this.toHslString();
+	            }
+	            if (format === "hsv") {
+	                formattedString = this.toHsvString();
+	            }
+	
+	            return formattedString || this.toHexString();
+	        },
+	
+	        _applyModification: function(fn, args) {
+	            var color = fn.apply(null, [this].concat([].slice.call(args)));
+	            this._r = color._r;
+	            this._g = color._g;
+	            this._b = color._b;
+	            this.setAlpha(color._a);
+	            return this;
+	        },
+	        lighten: function() {
+	            return this._applyModification(lighten, arguments);
+	        },
+	        brighten: function() {
+	            return this._applyModification(brighten, arguments);
+	        },
+	        darken: function() {
+	            return this._applyModification(darken, arguments);
+	        },
+	        desaturate: function() {
+	            return this._applyModification(desaturate, arguments);
+	        },
+	        saturate: function() {
+	            return this._applyModification(saturate, arguments);
+	        },
+	        greyscale: function() {
+	            return this._applyModification(greyscale, arguments);
+	        },
+	        spin: function() {
+	            return this._applyModification(spin, arguments);
+	        },
+	
+	        _applyCombination: function(fn, args) {
+	            return fn.apply(null, [this].concat([].slice.call(args)));
+	        },
+	        analogous: function() {
+	            return this._applyCombination(analogous, arguments);
+	        },
+	        complement: function() {
+	            return this._applyCombination(complement, arguments);
+	        },
+	        monochromatic: function() {
+	            return this._applyCombination(monochromatic, arguments);
+	        },
+	        splitcomplement: function() {
+	            return this._applyCombination(splitcomplement, arguments);
+	        },
+	        triad: function() {
+	            return this._applyCombination(triad, arguments);
+	        },
+	        tetrad: function() {
+	            return this._applyCombination(tetrad, arguments);
+	        }
+	    };
+	
+	    // If input is an object, force 1 into "1.0" to handle ratios properly
+	    // String input requires "1.0" as input, so 1 will be treated as 1
+	    tinycolor.fromRatio = function(color, opts) {
+	        if (typeof color == "object") {
+	            var newColor = {};
+	            for (var i in color) {
+	                if (color.hasOwnProperty(i)) {
+	                    if (i === "a") {
+	                        newColor[i] = color[i];
+	                    }
+	                    else {
+	                        newColor[i] = convertToPercentage(color[i]);
+	                    }
+	                }
+	            }
+	            color = newColor;
+	        }
+	
+	        return tinycolor(color, opts);
+	    };
+	
+	    // Given a string or object, convert that input to RGB
+	    // Possible string inputs:
+	    //
+	    //     "red"
+	    //     "#f00" or "f00"
+	    //     "#ff0000" or "ff0000"
+	    //     "#ff000000" or "ff000000"
+	    //     "rgb 255 0 0" or "rgb (255, 0, 0)"
+	    //     "rgb 1.0 0 0" or "rgb (1, 0, 0)"
+	    //     "rgba (255, 0, 0, 1)" or "rgba 255, 0, 0, 1"
+	    //     "rgba (1.0, 0, 0, 1)" or "rgba 1.0, 0, 0, 1"
+	    //     "hsl(0, 100%, 50%)" or "hsl 0 100% 50%"
+	    //     "hsla(0, 100%, 50%, 1)" or "hsla 0 100% 50%, 1"
+	    //     "hsv(0, 100%, 100%)" or "hsv 0 100% 100%"
+	    //
+	    function inputToRGB(color) {
+	
+	        var rgb = { r: 0, g: 0, b: 0 };
+	        var a = 1;
+	        var ok = false;
+	        var format = false;
+	
+	        if (typeof color == "string") {
+	            color = stringInputToObject(color);
+	        }
+	
+	        if (typeof color == "object") {
+	            if (color.hasOwnProperty("r") && color.hasOwnProperty("g") && color.hasOwnProperty("b")) {
+	                rgb = rgbToRgb(color.r, color.g, color.b);
+	                ok = true;
+	                format = String(color.r).substr(-1) === "%" ? "prgb" : "rgb";
+	            }
+	            else if (color.hasOwnProperty("h") && color.hasOwnProperty("s") && color.hasOwnProperty("v")) {
+	                color.s = convertToPercentage(color.s);
+	                color.v = convertToPercentage(color.v);
+	                rgb = hsvToRgb(color.h, color.s, color.v);
+	                ok = true;
+	                format = "hsv";
+	            }
+	            else if (color.hasOwnProperty("h") && color.hasOwnProperty("s") && color.hasOwnProperty("l")) {
+	                color.s = convertToPercentage(color.s);
+	                color.l = convertToPercentage(color.l);
+	                rgb = hslToRgb(color.h, color.s, color.l);
+	                ok = true;
+	                format = "hsl";
+	            }
+	
+	            if (color.hasOwnProperty("a")) {
+	                a = color.a;
+	            }
+	        }
+	
+	        a = boundAlpha(a);
+	
+	        return {
+	            ok: ok,
+	            format: color.format || format,
+	            r: mathMin(255, mathMax(rgb.r, 0)),
+	            g: mathMin(255, mathMax(rgb.g, 0)),
+	            b: mathMin(255, mathMax(rgb.b, 0)),
+	            a: a
+	        };
+	    }
+	
+	
+	    // Conversion Functions
+	    // --------------------
+	
+	    // `rgbToHsl`, `rgbToHsv`, `hslToRgb`, `hsvToRgb` modified from:
+	    // <http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript>
+	
+	    // `rgbToRgb`
+	    // Handle bounds / percentage checking to conform to CSS color spec
+	    // <http://www.w3.org/TR/css3-color/>
+	    // *Assumes:* r, g, b in [0, 255] or [0, 1]
+	    // *Returns:* { r, g, b } in [0, 255]
+	    function rgbToRgb(r, g, b){
+	        return {
+	            r: bound01(r, 255) * 255,
+	            g: bound01(g, 255) * 255,
+	            b: bound01(b, 255) * 255
+	        };
+	    }
+	
+	    // `rgbToHsl`
+	    // Converts an RGB color value to HSL.
+	    // *Assumes:* r, g, and b are contained in [0, 255] or [0, 1]
+	    // *Returns:* { h, s, l } in [0,1]
+	    function rgbToHsl(r, g, b) {
+	
+	        r = bound01(r, 255);
+	        g = bound01(g, 255);
+	        b = bound01(b, 255);
+	
+	        var max = mathMax(r, g, b), min = mathMin(r, g, b);
+	        var h, s, l = (max + min) / 2;
+	
+	        if(max == min) {
+	            h = s = 0; // achromatic
+	        }
+	        else {
+	            var d = max - min;
+	            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+	            switch(max) {
+	                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+	                case g: h = (b - r) / d + 2; break;
+	                case b: h = (r - g) / d + 4; break;
+	            }
+	
+	            h /= 6;
+	        }
+	
+	        return { h: h, s: s, l: l };
+	    }
+	
+	    // `hslToRgb`
+	    // Converts an HSL color value to RGB.
+	    // *Assumes:* h is contained in [0, 1] or [0, 360] and s and l are contained [0, 1] or [0, 100]
+	    // *Returns:* { r, g, b } in the set [0, 255]
+	    function hslToRgb(h, s, l) {
+	        var r, g, b;
+	
+	        h = bound01(h, 360);
+	        s = bound01(s, 100);
+	        l = bound01(l, 100);
+	
+	        function hue2rgb(p, q, t) {
+	            if(t < 0) t += 1;
+	            if(t > 1) t -= 1;
+	            if(t < 1/6) return p + (q - p) * 6 * t;
+	            if(t < 1/2) return q;
+	            if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+	            return p;
+	        }
+	
+	        if(s === 0) {
+	            r = g = b = l; // achromatic
+	        }
+	        else {
+	            var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+	            var p = 2 * l - q;
+	            r = hue2rgb(p, q, h + 1/3);
+	            g = hue2rgb(p, q, h);
+	            b = hue2rgb(p, q, h - 1/3);
+	        }
+	
+	        return { r: r * 255, g: g * 255, b: b * 255 };
+	    }
+	
+	    // `rgbToHsv`
+	    // Converts an RGB color value to HSV
+	    // *Assumes:* r, g, and b are contained in the set [0, 255] or [0, 1]
+	    // *Returns:* { h, s, v } in [0,1]
+	    function rgbToHsv(r, g, b) {
+	
+	        r = bound01(r, 255);
+	        g = bound01(g, 255);
+	        b = bound01(b, 255);
+	
+	        var max = mathMax(r, g, b), min = mathMin(r, g, b);
+	        var h, s, v = max;
+	
+	        var d = max - min;
+	        s = max === 0 ? 0 : d / max;
+	
+	        if(max == min) {
+	            h = 0; // achromatic
+	        }
+	        else {
+	            switch(max) {
+	                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+	                case g: h = (b - r) / d + 2; break;
+	                case b: h = (r - g) / d + 4; break;
+	            }
+	            h /= 6;
+	        }
+	        return { h: h, s: s, v: v };
+	    }
+	
+	    // `hsvToRgb`
+	    // Converts an HSV color value to RGB.
+	    // *Assumes:* h is contained in [0, 1] or [0, 360] and s and v are contained in [0, 1] or [0, 100]
+	    // *Returns:* { r, g, b } in the set [0, 255]
+	     function hsvToRgb(h, s, v) {
+	
+	        h = bound01(h, 360) * 6;
+	        s = bound01(s, 100);
+	        v = bound01(v, 100);
+	
+	        var i = math.floor(h),
+	            f = h - i,
+	            p = v * (1 - s),
+	            q = v * (1 - f * s),
+	            t = v * (1 - (1 - f) * s),
+	            mod = i % 6,
+	            r = [v, q, p, p, t, v][mod],
+	            g = [t, v, v, q, p, p][mod],
+	            b = [p, p, t, v, v, q][mod];
+	
+	        return { r: r * 255, g: g * 255, b: b * 255 };
+	    }
+	
+	    // `rgbToHex`
+	    // Converts an RGB color to hex
+	    // Assumes r, g, and b are contained in the set [0, 255]
+	    // Returns a 3 or 6 character hex
+	    function rgbToHex(r, g, b, allow3Char) {
+	
+	        var hex = [
+	            pad2(mathRound(r).toString(16)),
+	            pad2(mathRound(g).toString(16)),
+	            pad2(mathRound(b).toString(16))
+	        ];
+	
+	        // Return a 3 character hex if possible
+	        if (allow3Char && hex[0].charAt(0) == hex[0].charAt(1) && hex[1].charAt(0) == hex[1].charAt(1) && hex[2].charAt(0) == hex[2].charAt(1)) {
+	            return hex[0].charAt(0) + hex[1].charAt(0) + hex[2].charAt(0);
+	        }
+	
+	        return hex.join("");
+	    }
+	        // `rgbaToHex`
+	        // Converts an RGBA color plus alpha transparency to hex
+	        // Assumes r, g, b and a are contained in the set [0, 255]
+	        // Returns an 8 character hex
+	        function rgbaToHex(r, g, b, a) {
+	
+	            var hex = [
+	                pad2(convertDecimalToHex(a)),
+	                pad2(mathRound(r).toString(16)),
+	                pad2(mathRound(g).toString(16)),
+	                pad2(mathRound(b).toString(16))
+	            ];
+	
+	            return hex.join("");
+	        }
+	
+	    // `equals`
+	    // Can be called with any tinycolor input
+	    tinycolor.equals = function (color1, color2) {
+	        if (!color1 || !color2) { return false; }
+	        return tinycolor(color1).toRgbString() == tinycolor(color2).toRgbString();
+	    };
+	    tinycolor.random = function() {
+	        return tinycolor.fromRatio({
+	            r: mathRandom(),
+	            g: mathRandom(),
+	            b: mathRandom()
+	        });
+	    };
+	
+	
+	    // Modification Functions
+	    // ----------------------
+	    // Thanks to less.js for some of the basics here
+	    // <https://github.com/cloudhead/less.js/blob/master/lib/less/functions.js>
+	
+	    function desaturate(color, amount) {
+	        amount = (amount === 0) ? 0 : (amount || 10);
+	        var hsl = tinycolor(color).toHsl();
+	        hsl.s -= amount / 100;
+	        hsl.s = clamp01(hsl.s);
+	        return tinycolor(hsl);
+	    }
+	
+	    function saturate(color, amount) {
+	        amount = (amount === 0) ? 0 : (amount || 10);
+	        var hsl = tinycolor(color).toHsl();
+	        hsl.s += amount / 100;
+	        hsl.s = clamp01(hsl.s);
+	        return tinycolor(hsl);
+	    }
+	
+	    function greyscale(color) {
+	        return tinycolor(color).desaturate(100);
+	    }
+	
+	    function lighten (color, amount) {
+	        amount = (amount === 0) ? 0 : (amount || 10);
+	        var hsl = tinycolor(color).toHsl();
+	        hsl.l += amount / 100;
+	        hsl.l = clamp01(hsl.l);
+	        return tinycolor(hsl);
+	    }
+	
+	    function brighten(color, amount) {
+	        amount = (amount === 0) ? 0 : (amount || 10);
+	        var rgb = tinycolor(color).toRgb();
+	        rgb.r = mathMax(0, mathMin(255, rgb.r - mathRound(255 * - (amount / 100))));
+	        rgb.g = mathMax(0, mathMin(255, rgb.g - mathRound(255 * - (amount / 100))));
+	        rgb.b = mathMax(0, mathMin(255, rgb.b - mathRound(255 * - (amount / 100))));
+	        return tinycolor(rgb);
+	    }
+	
+	    function darken (color, amount) {
+	        amount = (amount === 0) ? 0 : (amount || 10);
+	        var hsl = tinycolor(color).toHsl();
+	        hsl.l -= amount / 100;
+	        hsl.l = clamp01(hsl.l);
+	        return tinycolor(hsl);
+	    }
+	
+	    // Spin takes a positive or negative amount within [-360, 360] indicating the change of hue.
+	    // Values outside of this range will be wrapped into this range.
+	    function spin(color, amount) {
+	        var hsl = tinycolor(color).toHsl();
+	        var hue = (mathRound(hsl.h) + amount) % 360;
+	        hsl.h = hue < 0 ? 360 + hue : hue;
+	        return tinycolor(hsl);
+	    }
+	
+	    // Combination Functions
+	    // ---------------------
+	    // Thanks to jQuery xColor for some of the ideas behind these
+	    // <https://github.com/infusion/jQuery-xcolor/blob/master/jquery.xcolor.js>
+	
+	    function complement(color) {
+	        var hsl = tinycolor(color).toHsl();
+	        hsl.h = (hsl.h + 180) % 360;
+	        return tinycolor(hsl);
+	    }
+	
+	    function triad(color) {
+	        var hsl = tinycolor(color).toHsl();
+	        var h = hsl.h;
+	        return [
+	            tinycolor(color),
+	            tinycolor({ h: (h + 120) % 360, s: hsl.s, l: hsl.l }),
+	            tinycolor({ h: (h + 240) % 360, s: hsl.s, l: hsl.l })
+	        ];
+	    }
+	
+	    function tetrad(color) {
+	        var hsl = tinycolor(color).toHsl();
+	        var h = hsl.h;
+	        return [
+	            tinycolor(color),
+	            tinycolor({ h: (h + 90) % 360, s: hsl.s, l: hsl.l }),
+	            tinycolor({ h: (h + 180) % 360, s: hsl.s, l: hsl.l }),
+	            tinycolor({ h: (h + 270) % 360, s: hsl.s, l: hsl.l })
+	        ];
+	    }
+	
+	    function splitcomplement(color) {
+	        var hsl = tinycolor(color).toHsl();
+	        var h = hsl.h;
+	        return [
+	            tinycolor(color),
+	            tinycolor({ h: (h + 72) % 360, s: hsl.s, l: hsl.l}),
+	            tinycolor({ h: (h + 216) % 360, s: hsl.s, l: hsl.l})
+	        ];
+	    }
+	
+	    function analogous(color, results, slices) {
+	        results = results || 6;
+	        slices = slices || 30;
+	
+	        var hsl = tinycolor(color).toHsl();
+	        var part = 360 / slices;
+	        var ret = [tinycolor(color)];
+	
+	        for (hsl.h = ((hsl.h - (part * results >> 1)) + 720) % 360; --results; ) {
+	            hsl.h = (hsl.h + part) % 360;
+	            ret.push(tinycolor(hsl));
+	        }
+	        return ret;
+	    }
+	
+	    function monochromatic(color, results) {
+	        results = results || 6;
+	        var hsv = tinycolor(color).toHsv();
+	        var h = hsv.h, s = hsv.s, v = hsv.v;
+	        var ret = [];
+	        var modification = 1 / results;
+	
+	        while (results--) {
+	            ret.push(tinycolor({ h: h, s: s, v: v}));
+	            v = (v + modification) % 1;
+	        }
+	
+	        return ret;
+	    }
+	
+	    // Utility Functions
+	    // ---------------------
+	
+	    tinycolor.mix = function(color1, color2, amount) {
+	        amount = (amount === 0) ? 0 : (amount || 50);
+	
+	        var rgb1 = tinycolor(color1).toRgb();
+	        var rgb2 = tinycolor(color2).toRgb();
+	
+	        var p = amount / 100;
+	        var w = p * 2 - 1;
+	        var a = rgb2.a - rgb1.a;
+	
+	        var w1;
+	
+	        if (w * a == -1) {
+	            w1 = w;
+	        } else {
+	            w1 = (w + a) / (1 + w * a);
+	        }
+	
+	        w1 = (w1 + 1) / 2;
+	
+	        var w2 = 1 - w1;
+	
+	        var rgba = {
+	            r: rgb2.r * w1 + rgb1.r * w2,
+	            g: rgb2.g * w1 + rgb1.g * w2,
+	            b: rgb2.b * w1 + rgb1.b * w2,
+	            a: rgb2.a * p  + rgb1.a * (1 - p)
+	        };
+	
+	        return tinycolor(rgba);
+	    };
+	
+	
+	    // Readability Functions
+	    // ---------------------
+	    // <http://www.w3.org/TR/AERT#color-contrast>
+	
+	    // `readability`
+	    // Analyze the 2 colors and returns an object with the following properties:
+	    //    `brightness`: difference in brightness between the two colors
+	    //    `color`: difference in color/hue between the two colors
+	    tinycolor.readability = function(color1, color2) {
+	        var c1 = tinycolor(color1);
+	        var c2 = tinycolor(color2);
+	        var rgb1 = c1.toRgb();
+	        var rgb2 = c2.toRgb();
+	        var brightnessA = c1.getBrightness();
+	        var brightnessB = c2.getBrightness();
+	        var colorDiff = (
+	            Math.max(rgb1.r, rgb2.r) - Math.min(rgb1.r, rgb2.r) +
+	            Math.max(rgb1.g, rgb2.g) - Math.min(rgb1.g, rgb2.g) +
+	            Math.max(rgb1.b, rgb2.b) - Math.min(rgb1.b, rgb2.b)
+	        );
+	
+	        return {
+	            brightness: Math.abs(brightnessA - brightnessB),
+	            color: colorDiff
+	        };
+	    };
+	
+	    // `readable`
+	    // http://www.w3.org/TR/AERT#color-contrast
+	    // Ensure that foreground and background color combinations provide sufficient contrast.
+	    // *Example*
+	    //    tinycolor.isReadable("#000", "#111") => false
+	    tinycolor.isReadable = function(color1, color2) {
+	        var readability = tinycolor.readability(color1, color2);
+	        return readability.brightness > 125 && readability.color > 500;
+	    };
+	
+	    // `mostReadable`
+	    // Given a base color and a list of possible foreground or background
+	    // colors for that base, returns the most readable color.
+	    // *Example*
+	    //    tinycolor.mostReadable("#123", ["#fff", "#000"]) => "#000"
+	    tinycolor.mostReadable = function(baseColor, colorList) {
+	        var bestColor = null;
+	        var bestScore = 0;
+	        var bestIsReadable = false;
+	        for (var i=0; i < colorList.length; i++) {
+	
+	            // We normalize both around the "acceptable" breaking point,
+	            // but rank brightness constrast higher than hue.
+	
+	            var readability = tinycolor.readability(baseColor, colorList[i]);
+	            var readable = readability.brightness > 125 && readability.color > 500;
+	            var score = 3 * (readability.brightness / 125) + (readability.color / 500);
+	
+	            if ((readable && ! bestIsReadable) ||
+	                (readable && bestIsReadable && score > bestScore) ||
+	                ((! readable) && (! bestIsReadable) && score > bestScore)) {
+	                bestIsReadable = readable;
+	                bestScore = score;
+	                bestColor = tinycolor(colorList[i]);
+	            }
+	        }
+	        return bestColor;
+	    };
+	
+	
+	    // Big List of Colors
+	    // ------------------
+	    // <http://www.w3.org/TR/css3-color/#svg-color>
+	    var names = tinycolor.names = {
+	        aliceblue: "f0f8ff",
+	        antiquewhite: "faebd7",
+	        aqua: "0ff",
+	        aquamarine: "7fffd4",
+	        azure: "f0ffff",
+	        beige: "f5f5dc",
+	        bisque: "ffe4c4",
+	        black: "000",
+	        blanchedalmond: "ffebcd",
+	        blue: "00f",
+	        blueviolet: "8a2be2",
+	        brown: "a52a2a",
+	        burlywood: "deb887",
+	        burntsienna: "ea7e5d",
+	        cadetblue: "5f9ea0",
+	        chartreuse: "7fff00",
+	        chocolate: "d2691e",
+	        coral: "ff7f50",
+	        cornflowerblue: "6495ed",
+	        cornsilk: "fff8dc",
+	        crimson: "dc143c",
+	        cyan: "0ff",
+	        darkblue: "00008b",
+	        darkcyan: "008b8b",
+	        darkgoldenrod: "b8860b",
+	        darkgray: "a9a9a9",
+	        darkgreen: "006400",
+	        darkgrey: "a9a9a9",
+	        darkkhaki: "bdb76b",
+	        darkmagenta: "8b008b",
+	        darkolivegreen: "556b2f",
+	        darkorange: "ff8c00",
+	        darkorchid: "9932cc",
+	        darkred: "8b0000",
+	        darksalmon: "e9967a",
+	        darkseagreen: "8fbc8f",
+	        darkslateblue: "483d8b",
+	        darkslategray: "2f4f4f",
+	        darkslategrey: "2f4f4f",
+	        darkturquoise: "00ced1",
+	        darkviolet: "9400d3",
+	        deeppink: "ff1493",
+	        deepskyblue: "00bfff",
+	        dimgray: "696969",
+	        dimgrey: "696969",
+	        dodgerblue: "1e90ff",
+	        firebrick: "b22222",
+	        floralwhite: "fffaf0",
+	        forestgreen: "228b22",
+	        fuchsia: "f0f",
+	        gainsboro: "dcdcdc",
+	        ghostwhite: "f8f8ff",
+	        gold: "ffd700",
+	        goldenrod: "daa520",
+	        gray: "808080",
+	        green: "008000",
+	        greenyellow: "adff2f",
+	        grey: "808080",
+	        honeydew: "f0fff0",
+	        hotpink: "ff69b4",
+	        indianred: "cd5c5c",
+	        indigo: "4b0082",
+	        ivory: "fffff0",
+	        khaki: "f0e68c",
+	        lavender: "e6e6fa",
+	        lavenderblush: "fff0f5",
+	        lawngreen: "7cfc00",
+	        lemonchiffon: "fffacd",
+	        lightblue: "add8e6",
+	        lightcoral: "f08080",
+	        lightcyan: "e0ffff",
+	        lightgoldenrodyellow: "fafad2",
+	        lightgray: "d3d3d3",
+	        lightgreen: "90ee90",
+	        lightgrey: "d3d3d3",
+	        lightpink: "ffb6c1",
+	        lightsalmon: "ffa07a",
+	        lightseagreen: "20b2aa",
+	        lightskyblue: "87cefa",
+	        lightslategray: "789",
+	        lightslategrey: "789",
+	        lightsteelblue: "b0c4de",
+	        lightyellow: "ffffe0",
+	        lime: "0f0",
+	        limegreen: "32cd32",
+	        linen: "faf0e6",
+	        magenta: "f0f",
+	        maroon: "800000",
+	        mediumaquamarine: "66cdaa",
+	        mediumblue: "0000cd",
+	        mediumorchid: "ba55d3",
+	        mediumpurple: "9370db",
+	        mediumseagreen: "3cb371",
+	        mediumslateblue: "7b68ee",
+	        mediumspringgreen: "00fa9a",
+	        mediumturquoise: "48d1cc",
+	        mediumvioletred: "c71585",
+	        midnightblue: "191970",
+	        mintcream: "f5fffa",
+	        mistyrose: "ffe4e1",
+	        moccasin: "ffe4b5",
+	        navajowhite: "ffdead",
+	        navy: "000080",
+	        oldlace: "fdf5e6",
+	        olive: "808000",
+	        olivedrab: "6b8e23",
+	        orange: "ffa500",
+	        orangered: "ff4500",
+	        orchid: "da70d6",
+	        palegoldenrod: "eee8aa",
+	        palegreen: "98fb98",
+	        paleturquoise: "afeeee",
+	        palevioletred: "db7093",
+	        papayawhip: "ffefd5",
+	        peachpuff: "ffdab9",
+	        peru: "cd853f",
+	        pink: "ffc0cb",
+	        plum: "dda0dd",
+	        powderblue: "b0e0e6",
+	        purple: "800080",
+	        rebeccapurple: "663399",
+	        red: "f00",
+	        rosybrown: "bc8f8f",
+	        royalblue: "4169e1",
+	        saddlebrown: "8b4513",
+	        salmon: "fa8072",
+	        sandybrown: "f4a460",
+	        seagreen: "2e8b57",
+	        seashell: "fff5ee",
+	        sienna: "a0522d",
+	        silver: "c0c0c0",
+	        skyblue: "87ceeb",
+	        slateblue: "6a5acd",
+	        slategray: "708090",
+	        slategrey: "708090",
+	        snow: "fffafa",
+	        springgreen: "00ff7f",
+	        steelblue: "4682b4",
+	        tan: "d2b48c",
+	        teal: "008080",
+	        thistle: "d8bfd8",
+	        tomato: "ff6347",
+	        turquoise: "40e0d0",
+	        violet: "ee82ee",
+	        wheat: "f5deb3",
+	        white: "fff",
+	        whitesmoke: "f5f5f5",
+	        yellow: "ff0",
+	        yellowgreen: "9acd32"
+	    };
+	
+	    // Make it easy to access colors via `hexNames[hex]`
+	    var hexNames = tinycolor.hexNames = flip(names);
+	
+	
+	    // Utilities
+	    // ---------
+	
+	    // `{ 'name1': 'val1' }` becomes `{ 'val1': 'name1' }`
+	    function flip(o) {
+	        var flipped = { };
+	        for (var i in o) {
+	            if (o.hasOwnProperty(i)) {
+	                flipped[o[i]] = i;
+	            }
+	        }
+	        return flipped;
+	    }
+	
+	    // Return a valid alpha value [0,1] with all invalid values being set to 1
+	    function boundAlpha(a) {
+	        a = parseFloat(a);
+	
+	        if (isNaN(a) || a < 0 || a > 1) {
+	            a = 1;
+	        }
+	
+	        return a;
+	    }
+	
+	    // Take input from [0, n] and return it as [0, 1]
+	    function bound01(n, max) {
+	        if (isOnePointZero(n)) { n = "100%"; }
+	
+	        var processPercent = isPercentage(n);
+	        n = mathMin(max, mathMax(0, parseFloat(n)));
+	
+	        // Automatically convert percentage into number
+	        if (processPercent) {
+	            n = parseInt(n * max, 10) / 100;
+	        }
+	
+	        // Handle floating point rounding errors
+	        if ((math.abs(n - max) < 0.000001)) {
+	            return 1;
+	        }
+	
+	        // Convert into [0, 1] range if it isn't already
+	        return (n % max) / parseFloat(max);
+	    }
+	
+	    // Force a number between 0 and 1
+	    function clamp01(val) {
+	        return mathMin(1, mathMax(0, val));
+	    }
+	
+	    // Parse a base-16 hex value into a base-10 integer
+	    function parseIntFromHex(val) {
+	        return parseInt(val, 16);
+	    }
+	
+	    // Need to handle 1.0 as 100%, since once it is a number, there is no difference between it and 1
+	    // <http://stackoverflow.com/questions/7422072/javascript-how-to-detect-number-as-a-decimal-including-1-0>
+	    function isOnePointZero(n) {
+	        return typeof n == "string" && n.indexOf('.') != -1 && parseFloat(n) === 1;
+	    }
+	
+	    // Check to see if string passed in is a percentage
+	    function isPercentage(n) {
+	        return typeof n === "string" && n.indexOf('%') != -1;
+	    }
+	
+	    // Force a hex value to have 2 characters
+	    function pad2(c) {
+	        return c.length == 1 ? '0' + c : '' + c;
+	    }
+	
+	    // Replace a decimal with it's percentage value
+	    function convertToPercentage(n) {
+	        if (n <= 1) {
+	            n = (n * 100) + "%";
+	        }
+	
+	        return n;
+	    }
+	
+	    // Converts a decimal to a hex value
+	    function convertDecimalToHex(d) {
+	        return Math.round(parseFloat(d) * 255).toString(16);
+	    }
+	    // Converts a hex value to a decimal
+	    function convertHexToDecimal(h) {
+	        return (parseIntFromHex(h) / 255);
+	    }
+	
+	    var matchers = (function() {
+	
+	        // <http://www.w3.org/TR/css3-values/#integers>
+	        var CSS_INTEGER = "[-\\+]?\\d+%?";
+	
+	        // <http://www.w3.org/TR/css3-values/#number-value>
+	        var CSS_NUMBER = "[-\\+]?\\d*\\.\\d+%?";
+	
+	        // Allow positive/negative integer/number.  Don't capture the either/or, just the entire outcome.
+	        var CSS_UNIT = "(?:" + CSS_NUMBER + ")|(?:" + CSS_INTEGER + ")";
+	
+	        // Actual matching.
+	        // Parentheses and commas are optional, but not required.
+	        // Whitespace can take the place of commas or opening paren
+	        var PERMISSIVE_MATCH3 = "[\\s|\\(]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")\\s*\\)?";
+	        var PERMISSIVE_MATCH4 = "[\\s|\\(]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")\\s*\\)?";
+	
+	        return {
+	            rgb: new RegExp("rgb" + PERMISSIVE_MATCH3),
+	            rgba: new RegExp("rgba" + PERMISSIVE_MATCH4),
+	            hsl: new RegExp("hsl" + PERMISSIVE_MATCH3),
+	            hsla: new RegExp("hsla" + PERMISSIVE_MATCH4),
+	            hsv: new RegExp("hsv" + PERMISSIVE_MATCH3),
+	            hsva: new RegExp("hsva" + PERMISSIVE_MATCH4),
+	            hex3: /^([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})$/,
+	            hex6: /^([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/,
+	            hex8: /^([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/
+	        };
+	    })();
+	
+	    // `stringInputToObject`
+	    // Permissive string parsing.  Take in a number of formats, and output an object
+	    // based on detected format.  Returns `{ r, g, b }` or `{ h, s, l }` or `{ h, s, v}`
+	    function stringInputToObject(color) {
+	
+	        color = color.replace(trimLeft,'').replace(trimRight, '').toLowerCase();
+	        var named = false;
+	        if (names[color]) {
+	            color = names[color];
+	            named = true;
+	        }
+	        else if (color == 'transparent') {
+	            return { r: 0, g: 0, b: 0, a: 0, format: "name" };
+	        }
+	
+	        // Try to match string input using regular expressions.
+	        // Keep most of the number bounding out of this function - don't worry about [0,1] or [0,100] or [0,360]
+	        // Just return an object and let the conversion functions handle that.
+	        // This way the result will be the same whether the tinycolor is initialized with string or object.
+	        var match;
+	        if ((match = matchers.rgb.exec(color))) {
+	            return { r: match[1], g: match[2], b: match[3] };
+	        }
+	        if ((match = matchers.rgba.exec(color))) {
+	            return { r: match[1], g: match[2], b: match[3], a: match[4] };
+	        }
+	        if ((match = matchers.hsl.exec(color))) {
+	            return { h: match[1], s: match[2], l: match[3] };
+	        }
+	        if ((match = matchers.hsla.exec(color))) {
+	            return { h: match[1], s: match[2], l: match[3], a: match[4] };
+	        }
+	        if ((match = matchers.hsv.exec(color))) {
+	            return { h: match[1], s: match[2], v: match[3] };
+	        }
+	        if ((match = matchers.hsva.exec(color))) {
+	            return { h: match[1], s: match[2], v: match[3], a: match[4] };
+	        }
+	        if ((match = matchers.hex8.exec(color))) {
+	            return {
+	                a: convertHexToDecimal(match[1]),
+	                r: parseIntFromHex(match[2]),
+	                g: parseIntFromHex(match[3]),
+	                b: parseIntFromHex(match[4]),
+	                format: named ? "name" : "hex8"
+	            };
+	        }
+	        if ((match = matchers.hex6.exec(color))) {
+	            return {
+	                r: parseIntFromHex(match[1]),
+	                g: parseIntFromHex(match[2]),
+	                b: parseIntFromHex(match[3]),
+	                format: named ? "name" : "hex"
+	            };
+	        }
+	        if ((match = matchers.hex3.exec(color))) {
+	            return {
+	                r: parseIntFromHex(match[1] + '' + match[1]),
+	                g: parseIntFromHex(match[2] + '' + match[2]),
+	                b: parseIntFromHex(match[3] + '' + match[3]),
+	                format: named ? "name" : "hex"
+	            };
+	        }
+	
+	        return false;
+	    }
+	
+	    window.tinycolor = tinycolor;
+	    })();
+	
+	    $(function () {
+	        if ($.fn.spectrum.load) {
+	            $.fn.spectrum.processNativeColorInputs();
+	        }
+	    });
+	
+	}
+
+/***/ },
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// style-loader: Adds some css to the DOM by adding a <style> tag
+	
+	// load the styles
+	var content = __webpack_require__(16);
+	if(typeof content === 'string') content = [[module.id, content, '']];
+	// add the styles to the DOM
+	var update = __webpack_require__(13)(content, {});
+	if(content.locals) module.exports = content.locals;
+	// Hot Module Replacement
+	if(false) {
+		// When the styles change, update the <style> tags
+		if(!content.locals) {
+			module.hot.accept("!!./../../node_modules/css-loader/index.js!./spectrum.css", function() {
+				var newContent = require("!!./../../node_modules/css-loader/index.js!./spectrum.css");
+				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+				update(newContent);
+			});
+		}
+		// When the module is disposed, remove the <style> tags
+		module.hot.dispose(function() { update(); });
+	}
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	exports = module.exports = __webpack_require__(12)();
+	// imports
+	
+	
+	// module
+	exports.push([module.id, "/***\nSpectrum Colorpicker v1.8.0\nhttps://github.com/bgrins/spectrum\nAuthor: Brian Grinstead\nLicense: MIT\n***/\n\n.sp-container {\n    position:absolute;\n    top:0;\n    left:0;\n    display:inline-block;\n    *display: inline;\n    *zoom: 1;\n    /* https://github.com/bgrins/spectrum/issues/40 */\n    z-index: 9999994;\n    overflow: hidden;\n}\n.sp-container.sp-flat {\n    position: relative;\n}\n\n/* Fix for * { box-sizing: border-box; } */\n.sp-container,\n.sp-container * {\n    -webkit-box-sizing: content-box;\n       -moz-box-sizing: content-box;\n            box-sizing: content-box;\n}\n\n/* http://ansciath.tumblr.com/post/7347495869/css-aspect-ratio */\n.sp-top {\n  position:relative;\n  width: 100%;\n  display:inline-block;\n}\n.sp-top-inner {\n   position:absolute;\n   top:0;\n   left:0;\n   bottom:0;\n   right:0;\n}\n.sp-color {\n    position: absolute;\n    top:0;\n    left:0;\n    bottom:0;\n    right:20%;\n}\n.sp-hue {\n    position: absolute;\n    top:0;\n    right:0;\n    bottom:0;\n    left:84%;\n    height: 100%;\n}\n\n.sp-clear-enabled .sp-hue {\n    top:33px;\n    height: 77.5%;\n}\n\n.sp-fill {\n    padding-top: 80%;\n}\n.sp-sat, .sp-val {\n    position: absolute;\n    top:0;\n    left:0;\n    right:0;\n    bottom:0;\n}\n\n.sp-alpha-enabled .sp-top {\n    margin-bottom: 18px;\n}\n.sp-alpha-enabled .sp-alpha {\n    display: block;\n}\n.sp-alpha-handle {\n    position:absolute;\n    top:-4px;\n    bottom: -4px;\n    width: 6px;\n    left: 50%;\n    cursor: pointer;\n    border: 1px solid black;\n    background: white;\n    opacity: .8;\n}\n.sp-alpha {\n    display: none;\n    position: absolute;\n    bottom: -14px;\n    right: 0;\n    left: 0;\n    height: 8px;\n}\n.sp-alpha-inner {\n    border: solid 1px #333;\n}\n\n.sp-clear {\n    display: none;\n}\n\n.sp-clear.sp-clear-display {\n    background-position: center;\n}\n\n.sp-clear-enabled .sp-clear {\n    display: block;\n    position:absolute;\n    top:0px;\n    right:0;\n    bottom:0;\n    left:84%;\n    height: 28px;\n}\n\n/* Don't allow text selection */\n.sp-container, .sp-replacer, .sp-preview, .sp-dragger, .sp-slider, .sp-alpha, .sp-clear, .sp-alpha-handle, .sp-container.sp-dragging .sp-input, .sp-container button  {\n    -webkit-user-select:none;\n    -moz-user-select: -moz-none;\n    -o-user-select:none;\n    user-select: none;\n}\n\n.sp-container.sp-input-disabled .sp-input-container {\n    display: none;\n}\n.sp-container.sp-buttons-disabled .sp-button-container {\n    display: none;\n}\n.sp-container.sp-palette-buttons-disabled .sp-palette-button-container {\n    display: none;\n}\n.sp-palette-only .sp-picker-container {\n    display: none;\n}\n.sp-palette-disabled .sp-palette-container {\n    display: none;\n}\n\n.sp-initial-disabled .sp-initial {\n    display: none;\n}\n\n\n/* Gradients for hue, saturation and value instead of images.  Not pretty... but it works */\n.sp-sat {\n    background-image: -webkit-gradient(linear,  0 0, 100% 0, from(#FFF), to(rgba(204, 154, 129, 0)));\n    background-image: -webkit-linear-gradient(left, #FFF, rgba(204, 154, 129, 0));\n    background-image: -moz-linear-gradient(left, #fff, rgba(204, 154, 129, 0));\n    background-image: -o-linear-gradient(left, #fff, rgba(204, 154, 129, 0));\n    background-image: -ms-linear-gradient(left, #fff, rgba(204, 154, 129, 0));\n    background-image: linear-gradient(to right, #fff, rgba(204, 154, 129, 0));\n    -ms-filter: \"progid:DXImageTransform.Microsoft.gradient(GradientType = 1, startColorstr=#FFFFFFFF, endColorstr=#00CC9A81)\";\n    filter : progid:DXImageTransform.Microsoft.gradient(GradientType = 1, startColorstr='#FFFFFFFF', endColorstr='#00CC9A81');\n}\n.sp-val {\n    background-image: -webkit-gradient(linear, 0 100%, 0 0, from(#000000), to(rgba(204, 154, 129, 0)));\n    background-image: -webkit-linear-gradient(bottom, #000000, rgba(204, 154, 129, 0));\n    background-image: -moz-linear-gradient(bottom, #000, rgba(204, 154, 129, 0));\n    background-image: -o-linear-gradient(bottom, #000, rgba(204, 154, 129, 0));\n    background-image: -ms-linear-gradient(bottom, #000, rgba(204, 154, 129, 0));\n    background-image: linear-gradient(to top, #000, rgba(204, 154, 129, 0));\n    -ms-filter: \"progid:DXImageTransform.Microsoft.gradient(startColorstr=#00CC9A81, endColorstr=#FF000000)\";\n    filter : progid:DXImageTransform.Microsoft.gradient(startColorstr='#00CC9A81', endColorstr='#FF000000');\n}\n\n.sp-hue {\n    background: -moz-linear-gradient(top, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);\n    background: -ms-linear-gradient(top, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);\n    background: -o-linear-gradient(top, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);\n    background: -webkit-gradient(linear, left top, left bottom, from(#ff0000), color-stop(0.17, #ffff00), color-stop(0.33, #00ff00), color-stop(0.5, #00ffff), color-stop(0.67, #0000ff), color-stop(0.83, #ff00ff), to(#ff0000));\n    background: -webkit-linear-gradient(top, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);\n    background: linear-gradient(to bottom, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);\n}\n\n/* IE filters do not support multiple color stops.\n   Generate 6 divs, line them up, and do two color gradients for each.\n   Yes, really.\n */\n.sp-1 {\n    height:17%;\n    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff0000', endColorstr='#ffff00');\n}\n.sp-2 {\n    height:16%;\n    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffff00', endColorstr='#00ff00');\n}\n.sp-3 {\n    height:17%;\n    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00ff00', endColorstr='#00ffff');\n}\n.sp-4 {\n    height:17%;\n    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00ffff', endColorstr='#0000ff');\n}\n.sp-5 {\n    height:16%;\n    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#0000ff', endColorstr='#ff00ff');\n}\n.sp-6 {\n    height:17%;\n    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff00ff', endColorstr='#ff0000');\n}\n\n.sp-hidden {\n    display: none !important;\n}\n\n/* Clearfix hack */\n.sp-cf:before, .sp-cf:after { content: \"\"; display: table; }\n.sp-cf:after { clear: both; }\n.sp-cf { *zoom: 1; }\n\n/* Mobile devices, make hue slider bigger so it is easier to slide */\n@media (max-device-width: 480px) {\n    .sp-color { right: 40%; }\n    .sp-hue { left: 63%; }\n    .sp-fill { padding-top: 60%; }\n}\n.sp-dragger {\n   border-radius: 5px;\n   height: 5px;\n   width: 5px;\n   border: 1px solid #fff;\n   background: #000;\n   cursor: pointer;\n   position:absolute;\n   top:0;\n   left: 0;\n}\n.sp-slider {\n    position: absolute;\n    top:0;\n    cursor:pointer;\n    height: 3px;\n    left: -1px;\n    right: -1px;\n    border: 1px solid #000;\n    background: white;\n    opacity: .8;\n}\n\n/*\nTheme authors:\nHere are the basic themeable display options (colors, fonts, global widths).\nSee http://bgrins.github.io/spectrum/themes/ for instructions.\n*/\n\n.sp-container {\n    border-radius: 0;\n    background-color: #ECECEC;\n    /*border: solid 1px #CCCCCC;*/\n    padding: 0;\n}\n.sp-container, .sp-container button, .sp-container input, .sp-color, .sp-hue, .sp-clear {\n    font: normal 12px \"Lucida Grande\", \"Lucida Sans Unicode\", \"Lucida Sans\", Geneva, Verdana, sans-serif;\n    -webkit-box-sizing: border-box;\n    -moz-box-sizing: border-box;\n    -ms-box-sizing: border-box;\n    box-sizing: border-box;\n}\n.sp-top {\n    margin-bottom: 3px;\n}\n.sp-color, .sp-hue, .sp-clear {\n    border: solid 1px #666;\n}\n\n/* Input */\n.sp-input-container {\n    float:right;\n    width: 100px;\n    margin-bottom: 4px;\n}\n.sp-initial-disabled  .sp-input-container {\n    width: 100%;\n}\n.sp-input {\n   font-size: 12px !important;\n   border: 1px inset;\n   padding: 4px 5px;\n   margin: 0;\n   width: 100%;\n   /*background:transparent;*/\n   border-radius: 3px;\n   color: #222;\n}\n.sp-input:focus  {\n    border: 1px solid orange;\n}\n.sp-input.sp-validation-error {\n    border: 1px solid red;\n    background: #fdd;\n}\n.sp-picker-container , .sp-palette-container {\n    float:left;\n    position: relative;\n    padding: 10px;\n    padding-bottom: 300px;\n    margin-bottom: -290px;\n}\n.sp-picker-container {\n    width: 172px;\n    /*border-left: solid 1px #fff;*/\n}\n\n/* Palettes */\n.sp-palette-container {\n    border-right: solid 1px #ccc;\n}\n\n.sp-palette-only .sp-palette-container {\n    border: 0;\n}\n\n.sp-palette .sp-thumb-el {\n    display: block;\n    position:relative;\n    float:left;\n    width: 24px;\n    height: 15px;\n    margin: 3px;\n    cursor: pointer;\n    border:solid 2px transparent;\n}\n.sp-palette .sp-thumb-el:hover, .sp-palette .sp-thumb-el.sp-thumb-active {\n    border-color: orange;\n}\n.sp-thumb-el {\n    position:relative;\n}\n\n/* Initial */\n.sp-initial {\n    float: left;\n    border: solid 1px #333;\n}\n.sp-initial span {\n    width: 30px;\n    height: 25px;\n    border:none;\n    display:block;\n    float:left;\n    margin:0;\n}\n\n.sp-initial .sp-clear-display {\n    background-position: center;\n}\n\n/* Buttons */\n.sp-palette-button-container,\n.sp-button-container {\n    float: right;\n}\n\n/* Replacer (the little preview div that shows up instead of the <input>) */\n.sp-replacer {\n    margin:0;\n    overflow:hidden;\n    cursor:pointer;\n    padding: 4px;\n    display:inline-block;\n    *zoom: 1;\n    *display: inline;\n    border: solid 1px #91765d;\n    background: #eee;\n    color: #333;\n    vertical-align: middle;\n}\n.sp-replacer:hover, .sp-replacer.sp-active {\n    border-color: #F0C49B;\n    color: #111;\n}\n.sp-replacer.sp-disabled {\n    cursor:default;\n    border-color: silver;\n    color: silver;\n}\n.sp-dd {\n    padding: 2px 0;\n    height: 16px;\n    line-height: 16px;\n    float:left;\n    font-size:10px;\n}\n.sp-preview {\n    position:relative;\n    width:25px;\n    height: 20px;\n    border: solid 1px #222;\n    margin-right: 5px;\n    float:left;\n    z-index: 0;\n}\n\n.sp-palette {\n    width: 220px;\n    max-width: 220px;\n}\n.sp-palette .sp-thumb-el {\n    width:16px;\n    height: 16px;\n    margin:2px 1px;\n    border: solid 1px #d0d0d0;\n}\n\n.sp-container {\n    padding-bottom:0;\n}\n\n\n/* Buttons: http://hellohappy.org/css3-buttons/ */\n.sp-container button {\n  background-color: #eeeeee;\n  background-image: -webkit-linear-gradient(top, #eeeeee, #cccccc);\n  background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);\n  background-image: -ms-linear-gradient(top, #eeeeee, #cccccc);\n  background-image: -o-linear-gradient(top, #eeeeee, #cccccc);\n  background-image: linear-gradient(to bottom, #eeeeee, #cccccc);\n  border: 1px solid #ccc;\n  border-bottom: 1px solid #bbb;\n  border-radius: 3px;\n  color: #333;\n  font-size: 14px;\n  line-height: 1;\n  padding: 5px 4px;\n  text-align: center;\n  text-shadow: 0 1px 0 #eee;\n  vertical-align: middle;\n}\n.sp-container button:hover {\n    background-color: #dddddd;\n    background-image: -webkit-linear-gradient(top, #dddddd, #bbbbbb);\n    background-image: -moz-linear-gradient(top, #dddddd, #bbbbbb);\n    background-image: -ms-linear-gradient(top, #dddddd, #bbbbbb);\n    background-image: -o-linear-gradient(top, #dddddd, #bbbbbb);\n    background-image: linear-gradient(to bottom, #dddddd, #bbbbbb);\n    border: 1px solid #bbb;\n    border-bottom: 1px solid #999;\n    cursor: pointer;\n    text-shadow: 0 1px 0 #ddd;\n}\n.sp-container button:active {\n    border: 1px solid #aaa;\n    border-bottom: 1px solid #888;\n    -webkit-box-shadow: inset 0 0 5px 2px #aaaaaa, 0 1px 0 0 #eeeeee;\n    -moz-box-shadow: inset 0 0 5px 2px #aaaaaa, 0 1px 0 0 #eeeeee;\n    -ms-box-shadow: inset 0 0 5px 2px #aaaaaa, 0 1px 0 0 #eeeeee;\n    -o-box-shadow: inset 0 0 5px 2px #aaaaaa, 0 1px 0 0 #eeeeee;\n    box-shadow: inset 0 0 5px 2px #aaaaaa, 0 1px 0 0 #eeeeee;\n}\n.sp-cancel {\n    font-size: 11px;\n    color: #d93f3f !important;\n    margin:0;\n    padding:2px;\n    margin-right: 5px;\n    vertical-align: middle;\n    text-decoration:none;\n\n}\n.sp-cancel:hover {\n    color: #d93f3f !important;\n    text-decoration: underline;\n}\n\n\n.sp-palette span:hover, .sp-palette span.sp-thumb-active {\n    border-color: #000;\n}\n\n.sp-preview, .sp-alpha, .sp-thumb-el {\n    position:relative;\n    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAIAAADZF8uwAAAAGUlEQVQYV2M4gwH+YwCGIasIUwhT25BVBADtzYNYrHvv4gAAAABJRU5ErkJggg==);\n}\n.sp-preview-inner, .sp-alpha-inner, .sp-thumb-inner {\n    display:block;\n    position:absolute;\n    top:0;left:0;bottom:0;right:0;\n}\n\n.sp-palette .sp-thumb-inner {\n    background-position: 50% 50%;\n    background-repeat: no-repeat;\n}\n\n.sp-palette .sp-thumb-light.sp-thumb-active .sp-thumb-inner {\n    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAIVJREFUeNpiYBhsgJFMffxAXABlN5JruT4Q3wfi/0DsT64h8UD8HmpIPCWG/KemIfOJCUB+Aoacx6EGBZyHBqI+WsDCwuQ9mhxeg2A210Ntfo8klk9sOMijaURm7yc1UP2RNCMbKE9ODK1HM6iegYLkfx8pligC9lCD7KmRof0ZhjQACDAAceovrtpVBRkAAAAASUVORK5CYII=);\n}\n\n.sp-palette .sp-thumb-dark.sp-thumb-active .sp-thumb-inner {\n    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAadEVYdFNvZnR3YXJlAFBhaW50Lk5FVCB2My41LjEwMPRyoQAAAMdJREFUOE+tkgsNwzAMRMugEAahEAahEAZhEAqlEAZhEAohEAYh81X2dIm8fKpEspLGvudPOsUYpxE2BIJCroJmEW9qJ+MKaBFhEMNabSy9oIcIPwrB+afvAUFoK4H0tMaQ3XtlrggDhOVVMuT4E5MMG0FBbCEYzjYT7OxLEvIHQLY2zWwQ3D+9luyOQTfKDiFD3iUIfPk8VqrKjgAiSfGFPecrg6HN6m/iBcwiDAo7WiBeawa+Kwh7tZoSCGLMqwlSAzVDhoK+6vH4G0P5wdkAAAAASUVORK5CYII=);\n}\n\n.sp-clear-display {\n    background-repeat:no-repeat;\n    background-position: center;\n    background-image: url(data:image/gif;base64,R0lGODlhFAAUAPcAAAAAAJmZmZ2dnZ6enqKioqOjo6SkpKWlpaampqenp6ioqKmpqaqqqqurq/Hx8fLy8vT09PX19ff39/j4+Pn5+fr6+vv7+wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAP8ALAAAAAAUABQAAAihAP9FoPCvoMGDBy08+EdhQAIJCCMybCDAAYUEARBAlFiQQoMABQhKUJBxY0SPICEYHBnggEmDKAuoPMjS5cGYMxHW3IiT478JJA8M/CjTZ0GgLRekNGpwAsYABHIypcAgQMsITDtWJYBR6NSqMico9cqR6tKfY7GeBCuVwlipDNmefAtTrkSzB1RaIAoXodsABiZAEFB06gIBWC1mLVgBa0AAOw==);\n}", ""]);
+	
+	// exports
+
+
+/***/ },
+/* 17 */
 /***/ function(module, exports) {
 
 	module.exports = "varying vec2 vUv;\n\nvoid main()\n{\n    vUv = uv;\n    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n}"
 
 /***/ },
-/* 10 */
+/* 18 */
 /***/ function(module, exports) {
 
 	module.exports = "varying vec2 vUv;\nuniform sampler2D tSource;\nuniform vec4 color1;\nuniform vec4 color2;\nuniform vec4 color3;\nuniform vec4 color4;\nuniform vec4 color5;\n\nvoid main() {\n\n    float value = texture2D(tSource, vUv).g;\n    float a;\n    vec3 col;\n    \n    if (value <= color1.a) { col = color1.rgb; }\n    if (value > color1.a && value <= color2.a) {\n        a   = (value - color1.a) / (color2.a - color1.a);\n        col = mix(color1.rgb, color2.rgb, a);\n    }\n    if (value > color2.a && value <= color3.a) {\n        a   = (value - color2.a) / (color3.a - color2.a);\n        col = mix(color2.rgb, color3.rgb, a);\n    }\n    if(value > color3.a && value <= color4.a) {\n        a   = (value - color3.a) / (color4.a - color3.a);\n        col = mix(color3.rgb, color4.rgb, a);\n    }\n    if(value > color4.a && value <= color5.a) {\n        a   = (value - color4.a) / (color5.a - color4.a);\n        col = mix(color4.rgb, color5.rgb, a);\n    }\n    if(value > color5.a) { col = color5.rgb; }\n    \n    gl_FragColor = vec4(col.r, col.g, col.b, 1.0);\n\n}"
 
 /***/ },
-/* 11 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var THREE, TextureHelper, constantMaterial, constantPlane, defaultHeight, defaultOptions, defaultWidth;
@@ -50161,10 +53142,10 @@
 
 
 /***/ },
-/* 12 */
+/* 20 */
 /***/ function(module, exports) {
 
-	module.exports = "varying vec2 vUv;\nuniform vec2 step;\nuniform sampler2D tSource;\nuniform sampler2D tEnv;\nuniform float delta;\nuniform float feedFactor;\nuniform float killFactor;\nuniform vec2 brush;\nuniform vec2 brushColor;\nuniform float brushSize;\n\nvoid main() {\n\n    vec2 envValue = texture2D( tEnv, vUv ).rg;\n    float feed = envValue.r * feedFactor;\n    float kill = envValue.g * killFactor;\n    // gl_FragColor = vec4( envValue , 0.0 , 1.0 );\n    // float feed = 0.035;\n    // float kill = 0.060;\n\n    vec2 uv  = texture2D( tSource, vUv ).rg;\n    vec2 uv0 = texture2D( tSource, vUv + vec2( -step.x, 0.0 ) ).rg;\n    vec2 uv1 = texture2D( tSource, vUv + vec2(  step.x, 0.0 ) ).rg;\n    vec2 uv2 = texture2D( tSource, vUv + vec2( 0.0, -step.y ) ).rg;\n    vec2 uv3 = texture2D( tSource, vUv + vec2( 0.0,  step.y ) ).rg;\n\n    vec2 lapl = 0.25 * ( uv0 + uv1 + uv2 + uv3 ) - uv;\n    float reaction = uv.r * uv.g * uv.g;\n    float du = 1.0 * lapl.r - reaction +  feed * (1.0 - uv.r);\n    float dv = 0.5 * lapl.g + reaction - (feed + kill) * uv.g;\n    vec2 dst = uv + delta * vec2(du, dv);\n\n    if (brush.x > 0.0) {\n        vec2 diff = (vUv - brush) / step;\n        float dist = dot(diff, diff);\n        dst = dist < brushSize ? brushColor : dst.rg;\n    }\n    \n    gl_FragColor = vec4(dst, 0.0, 1.0);\n\n}"
+	module.exports = "varying vec2 vUv;\nuniform vec2 step;\nuniform sampler2D tSource;\nuniform sampler2D tEnv;\nuniform float delta;\nuniform float feedFactor;\nuniform float killFactor;\nuniform vec2 brush;\nuniform vec2 brushColor;\nuniform float brushSize;\n\nvoid main() {\n\n    vec3 vEnv = texture2D( tEnv, vUv ).rgb;\n    float feed = vEnv.r * feedFactor;\n    float kill = vEnv.g * killFactor;\n    float sx = step.x * vEnv.b * 10.0;\n    float sy = step.y * vEnv.b * 10.0;\n\n    vec2 uv  = texture2D( tSource, vUv ).rg;\n    vec2 uv0 = texture2D( tSource, vUv + vec2( -sx, 0.0 ) ).rg;\n    vec2 uv1 = texture2D( tSource, vUv + vec2(  sx, 0.0 ) ).rg;\n    vec2 uv2 = texture2D( tSource, vUv + vec2( 0.0, -sy ) ).rg;\n    vec2 uv3 = texture2D( tSource, vUv + vec2( 0.0,  sy ) ).rg;\n\n    vec2 lapl = 0.25 * ( uv0 + uv1 + uv2 + uv3 ) - uv;\n    float reaction = uv.r * uv.g * uv.g;\n    float du = 1.0 * lapl.r - reaction +  feed * (1.0 - uv.r);\n    float dv = 0.5 * lapl.g + reaction - (feed + kill) * uv.g;\n    vec2 dst = uv + delta * vec2(du, dv);\n\n    if (brush.x > 0.0) {\n        vec2 diff = (vUv - brush) / step;\n        float dist = dot(diff, diff);\n        dst = dist < brushSize ? brushColor : dst.rg;\n    }\n    \n    gl_FragColor = vec4(dst, 0.0, 1.0);\n\n}"
 
 /***/ }
 /******/ ]);

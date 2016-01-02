@@ -7,28 +7,26 @@ MouseUtils = require './utils/MouseUtils'
 DrawPad = require './DrawPad'
 ReactiveDiffusionSimulator = require './ReactiveDiffusionSimulator'
 
-
-
 gui = new dat.GUI
 ready = new ReactiveDiffusionSimulator
-	width: 256
-	height: 256
+	width: 512
+	height: 512
 drawpad = new DrawPad
-	width: 256
-	height: 256
+	width: 512
+	height: 512
 
 $body = $ 'body'
 $body.append drawpad.canvas
 $body.append ready.renderer.domElement
 
 ready.showDebugInterface gui
+ready.presentMaterial.setupInterface( $body )
 drawpad.showDebugInterface gui
-drawpad.fill 0.31 , 0.6 , 0
+drawpad.fill 0.31 , 0.6 , 0.1
 
 drawTex = new THREE.Texture drawpad.canvas
 drawTex.needsUpdate = true
-drawpad.events.on "drawing" , =>
-	drawTex.needsUpdate = true
+drawpad.events.on "drawing" , => drawTex.needsUpdate = true
 	
 ready.setEnvMap drawTex
 
@@ -47,15 +45,3 @@ render = ->
 	ready.present()
 	requestAnimationFrame render
 render()
-
-# drawpad.events.on "start" , =>
-	# simulating = false
-# drawpad.events.on "end" , =>
-# 	# simulating = true
-# 	tex = new THREE.Texture drawpad.canvas
-# 	tex.wrapS = THREE.RepeatWrapping
-# 	tex.wrapT = THREE.RepeatWrapping
-# 	tex.needsUpdate = true
-# 	ready.setEnvMap tex
-# 	drawpad.fill 0
-# drawpad.events.on "drawing" , ->

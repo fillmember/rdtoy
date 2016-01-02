@@ -24,7 +24,7 @@ class DrawPad
 
 		# DrawStyle
 
-		@drawColor = new THREE.Color 0.25 , 0.5 , 0
+		@drawColor = new THREE.Color 0.25 , 0.6 , 0.05
 		@drawSize = 25
 		@drawFeather = 0
 
@@ -128,6 +128,7 @@ class DrawPad
 		f.open()
 		f.add( @drawColor , "r" , 0 , 0.8 ).name("brush:birth rate")
 		f.add( @drawColor , "g" , 0 , 0.7 ).name("brush:kill rate")
+		f.add( @drawColor , "b" , 0.05 , 0.5 ).name("brush:sim step")
 		f.add( @ , "drawSize" , 5 , 100 ).name("brush:size")
 
 module.exports = DrawPad
