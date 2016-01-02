@@ -51,8 +51,8 @@ class ReactiveDiffusionSimulator
 			renderer: @renderer
 			camera: @camera
 		@textureHelper.setRenderTarget @width , @height , renderTargetOptions
-		@tex1 = @textureHelper.getSolidRenderTarget 1 , 0 , 0
-		@tex2 = @textureHelper.getSolidRenderTarget 1 , 0 , 0
+		@tex1 = @textureHelper.getSolidRenderTarget 1 , 1 , 0
+		@tex2 = @textureHelper.getSolidRenderTarget 1 , 1 , 0
 		# Shader
 		vShader = require './../shader/standard.vs.glsl'
 		fShader = require './../shader/gs.fs.glsl'

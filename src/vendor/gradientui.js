@@ -30,6 +30,8 @@ module.exports = function($) {
         this.moved = false;
         this.oldleft = undefined
         this.mousedownx = undefined;
+        this.$text = $('<span></span>')
+        this.$this.append( this.$text )
         this.$this.css("left", this.position*this.width);
         this.$this.css("background-color", this.color);
         
@@ -39,18 +41,14 @@ module.exports = function($) {
         $(window).bind("mousemove.dragger", {this : this}, function(event){event.data.this.mousemove(event)});
 
         var dragger = this
-
         this.$this.spectrum({
             replacerClassName: 'customSpectrum',
             color: this.color,
-            beforeShow: function(){
-                // true when not dragging... (show normally)
-                // false when dragging... (cancel showing)
-                return ! dragger.moved
-            },
-            move: function(tc) {
-                dragger.setColor(tc.toHexString())
-            }
+            showButtons: false,
+            showInput: true,
+            preferredFormat: 'hex',
+            beforeShow: function(){ return dragger.moved ? false : true },
+            move: function(tc) { dragger.setColor(tc.toHexString()) }
         })
 
     }
@@ -64,10 +62,12 @@ module.exports = function($) {
         this.mousedownx = event.pageX;
         this.dragging = true;
         this.moved = false;
+        this.displayPosition(this.position);
     }
     
     Dragger.prototype.mouseup = function(event) {
         this.dragging = false;
+        this.displayPosition(null);
     }
     
     Dragger.prototype.mousemove = function(event) {
@@ -78,9 +78,20 @@ module.exports = function($) {
         
         this.position = newleft / this.width;
         this.$this.css("left", newleft);
+        this.displayPosition(this.position);
         this.parent.redraw();
 
         this.moved = true;
+    }
+
+    Dragger.prototype.displayPosition = function(arg) {
+        if (typeof arg === 'number') {
+            this.$text.text(Math.round( arg * 100 ) / 100);
+        } else if (arg) {
+            this.$text.text(arg);
+        } else {
+            this.$text.text(null);
+        }
     }
     
     Dragger.prototype.setPosition = function(pos) {

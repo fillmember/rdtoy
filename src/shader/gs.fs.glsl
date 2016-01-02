@@ -11,18 +11,17 @@ uniform float brushSize;
 
 void main() {
 
-    vec2 envValue = texture2D( tEnv, vUv ).rg;
-    float feed = envValue.r * feedFactor;
-    float kill = envValue.g * killFactor;
-    // gl_FragColor = vec4( envValue , 0.0 , 1.0 );
-    // float feed = 0.035;
-    // float kill = 0.060;
+    vec3 vEnv = texture2D( tEnv, vUv ).rgb;
+    float feed = vEnv.r * feedFactor;
+    float kill = vEnv.g * killFactor;
+    float sx = step.x * vEnv.b * 10.0;
+    float sy = step.y * vEnv.b * 10.0;
 
     vec2 uv  = texture2D( tSource, vUv ).rg;
-    vec2 uv0 = texture2D( tSource, vUv + vec2( -step.x, 0.0 ) ).rg;
-    vec2 uv1 = texture2D( tSource, vUv + vec2(  step.x, 0.0 ) ).rg;
-    vec2 uv2 = texture2D( tSource, vUv + vec2( 0.0, -step.y ) ).rg;
-    vec2 uv3 = texture2D( tSource, vUv + vec2( 0.0,  step.y ) ).rg;
+    vec2 uv0 = texture2D( tSource, vUv + vec2( -sx, 0.0 ) ).rg;
+    vec2 uv1 = texture2D( tSource, vUv + vec2(  sx, 0.0 ) ).rg;
+    vec2 uv2 = texture2D( tSource, vUv + vec2( 0.0, -sy ) ).rg;
+    vec2 uv3 = texture2D( tSource, vUv + vec2( 0.0,  sy ) ).rg;
 
     vec2 lapl = 0.25 * ( uv0 + uv1 + uv2 + uv3 ) - uv;
     float reaction = uv.r * uv.g * uv.g;

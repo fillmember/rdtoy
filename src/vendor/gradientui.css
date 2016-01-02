@@ -1,5 +1,5 @@
 
-.Gradient {
+.gradientui {
 	width: 300px;
 	height: 40px;
 }
@@ -15,4 +15,14 @@
     position: absolute;
     bottom: 10px;
     cursor: auto;
+}
+
+.gradient-dragger span {
+	z-index: 999;
+	position: absolute;
+	left: 9px;
+	font-size: 0.2em;
+	font-family: monospace;
+	color: #666666;
+	background: #FFFFFF;
 }
