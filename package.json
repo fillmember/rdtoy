@@ -19,7 +19,12 @@
     "jade"
   ],
   "dependencies": {
+    "express": "^4.13.3",
+    "express-ws": "^0.2.6",
+    "fluent-ffmpeg": "^2.0.1",
+    "gsap": "^1.18.2",
     "jquery": "^2.1.4",
+    "lodash": "^3.10.1",
     "three": "^0.73.0"
   },
   "devDependencies": {
@@ -31,11 +36,14 @@
     "css-loader": "^0.23.1",
     "del": "^2.2.0",
     "file-loader": "^0.8.5",
+    "fs-extra": "^0.26.4",
     "gulp": "~3.8.1",
     "gulp-jade": "~1.1.0",
+    "gulp-plumber": "^1.0.1",
     "gulp-stylus": "^1.3.7",
     "gulp-util": "~2.2.20",
     "jade-loader": "^0.6.1",
+    "nib": "^1.1.0",
     "run-sequence": "^1.1.5",
     "shader-loader": "^1.1.4",
     "style-loader": "^0.13.0",
