@@ -8,6 +8,7 @@ class MouseEventManager
 		down
 		move
 		leave
+		enter
 	}) ->
 
 		@listeners = []
@@ -21,6 +22,7 @@ class MouseEventManager
 		if down?  then @bind "mousedown"  , down
 		if move?  then @bind "mousemove"  , move
 		if leave? then @bind "mouseleave" , leave
+		if enter? then @bind "mouseenter" , enter
 		
 		@mouseButtonPressed = false
 		

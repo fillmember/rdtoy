@@ -1,6 +1,9 @@
+EventEmitter = require('events').EventEmitter
 THREE = require 'three'
+$ = require 'jquery'
 DefaultPresentMaterial = require './GradientMappingMaterial'
 TextureHelper = require './helpers/TextureHelper'
+UI = require './utils/InterfaceUtils'
 
 brushOff = new THREE.Vector2 -1 , -1
 plane = new THREE.PlaneGeometry 1 , 1
@@ -16,13 +19,18 @@ renderTargetOptions = {
 	stencilBuffer : false
 }
 
+maxTextureSize = 1024
+
 class ReactiveDiffusionSimulator
 	constructor: ({
 		@width = 1024
 		@height = 512
 		presentMaterial = new DefaultPresentMaterial
 		canvas
+		autorun = true
 	}) ->
+		# Programming
+		@events = new EventEmitter()
 		# THREE Important Objects
 		@renderer = new THREE.WebGLRenderer
 			canvas: canvas
@@ -61,6 +69,7 @@ class ReactiveDiffusionSimulator
 			vertexShader: vShader
 			fragmentShader: fShader
 		# Simulation Configuration
+		@running = false
 		@stepSize = 1
 		@subStepCount = 8
 		@iteration = 0
@@ -68,15 +77,27 @@ class ReactiveDiffusionSimulator
 		@presentMaterial = presentMaterial
 		# Init Sequence
 		@setSize @width , @height
+		if autorun
+			@running = true
+		@run()
+
+	setRunning: (t) ->
+		@running = t
+		$('#ready-run-button')
+			.data 'ui'
+			.update t
 
 	setSize: ( w = @width , h = @height ) ->
-		@renderer.setSize(w, h);
-		w *= 0.5
-		h *= 0.5
-		@textureHelper.setSize w , h
-		@tex1.setSize w , h
-		@tex2.setSize w , h
-		@uniforms.step.value.set @stepSize / w , @stepSize / h
+		texw = Math.min maxTextureSize , 0.5 * w
+		texh = Math.min maxTextureSize , 0.5 * h
+		ratio = texh / texw
+		@width = w
+		@height = w * ratio
+		@renderer.setSize w , w * ratio
+		@textureHelper.setSize w , w * ratio
+		@tex1.setSize texw , texh
+		@tex2.setSize texw , texh
+		@uniforms.step.value.set @stepSize / texw , @stepSize / texh
 
 	fill: ( a , b ) ->
 		@tex1 = @textureHelper.getSolidRenderTarget a , b , 0
@@ -96,15 +117,22 @@ class ReactiveDiffusionSimulator
 			@uniforms.brush.value.set x , y
 		else
 			@uniforms.brush.value.copy x
+		if not @running
+			n = @subStepCount
+			@subStepCount = 1
+			@step()
+			@subStepCount = n
+
 	drawOff: -> @uniforms.brush.value = brushOff.clone()
 
 	step: () ->
+		@events.emit 'step'
 		@mesh.material = @mat
 		@subStep @subStepCount
 
 	subStep: ( n ) ->
 		if n <= 0 then return
-		if @iteration % 2 is 0 #@toggle
+		if @iteration % 2 is 0
 			@uniforms.tSource.value = @tex1
 			@renderer.render @scene , @camera , @tex2
 			@uniforms.tSource.value = @tex2
@@ -121,6 +149,78 @@ class ReactiveDiffusionSimulator
 		@mesh.material = @presentMaterial.material
 		@renderer.render @scene , @camera
 
+	run: () ->
+		if @running then @step()
+		@present()
+		window.requestAnimationFrame => @run()
+
+	pause: () -> @running = false
+
+	setupInterface: ( section , root , special ) ->
+		# Buttons
+		section.append UI.item UI.btnGroup [
+			UI.button
+				id       : 'ready-run-button'
+				icon     : 'fa-futbol-o'
+				name     : 'run'
+				checkbox : true
+				checked  : @running
+				action   : (t, btn) => @running = t
+			UI.button
+				icon     : 'fa-step-forward'
+				name     : 'step'
+				action   : => @step()
+			UI.button
+				name     : 'clear'
+				icon     : 'fa-times'
+				action   : =>
+					@clear()
+					if not @running then @step()
+		]
+		# Sliders
+		section.append UI.item [
+			UI.slider
+				name     : 'speed'
+				icon     : 'fa-clock-o'
+				object   : @
+				property : 'subStepCount'
+				min      : 1
+				max      : 32
+				step     : 1
+				display: (v) -> v + 'x'
+			UI.slider
+				name     : 'feed'
+				icon     : 'fa-plus-circle'
+				object   : @uniforms.feedFactor
+				property : 'value'
+				min      : 0
+				max      : 0.1
+				step     : 0.001
+			UI.slider
+				name     : 'kill'
+				icon     : 'fa-bolt'
+				object   : @uniforms.killFactor
+				property : 'value'
+				min      : 0
+				max      : 0.1
+				step     : 0.001
+			UI.slider
+				name     : 'step'
+				icon     : 'fa-search'
+				object   : @
+				property : "stepSize"
+				min      : 0.125
+				max      : 6
+				step     : 0.125
+				onInput  : =>
+					texw = Math.min maxTextureSize , 0.5 * @width
+					texh = Math.min maxTextureSize , 0.5 * @height
+					@uniforms.step.value.set @stepSize / texw , @stepSize / texh
+				display: (v) -> v + 'x'
+		]
+
+		@presentMaterial.setupInterface section
+
 	showDebugInterface: ( gui ) ->
 		f = gui.addFolder "Reactive Diffusion Simulator"
 		f.open()
@@ -133,8 +233,3 @@ class ReactiveDiffusionSimulator
 
 
 module.exports = ReactiveDiffusionSimulator
-
-
-
-
-

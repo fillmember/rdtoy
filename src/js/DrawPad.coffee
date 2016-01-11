@@ -4,19 +4,26 @@ EventEmitter = require('events').EventEmitter
 
 MouseUtils = require './utils/MouseUtils'
 
+PI2 = 2 * Math.PI
+
 class DrawPad
 	constructor: ({
 		@canvas = document.createElement('canvas')
 		@width = 1024
 		@height = 512
+		@backgroundColor
 	}) ->
 		@context = @canvas.getContext("2d")
 
 		@mouseEventManager = MouseUtils.bind
 			dom  : @canvas
-			down : @onMouseDown.bind this
-			up   : @onMouseUp.bind this
-			move : @onMouseMove.bind this
+			down : (evt) => @onMouseDown(evt)
+			up   : (evt) => @onMouseUp(evt)
+			move : (evt) => @onMouseMove(evt)
+			enter: (evt) => @showCursor()
+			leave: (evt) => @onMouseUp(evt) ; @hideCursor()
+
+		@fill @backgroundColor
 
 		@setSize @width , @height
 
@@ -24,9 +31,10 @@ class DrawPad
 
 		# DrawStyle
 
-		@drawColor = new THREE.Color 0.25 , 0.6 , 0.05
-		@drawSize = 25
-		@drawFeather = 0
+		@brushColor = new THREE.Color 0.25 , 0.6 , 0.05
+		@brushSize = 25
+		@brushSoftness = 1
+		@brushOpacity = 0.1
 
 		# Interaction
 
@@ -36,26 +44,28 @@ class DrawPad
 			y: undefined
 		}
 
-	setDrawStyle: (size = @drawSize, color = @drawColor.getStyle(), feather = @drawFeather ) ->
+	setDrawStyle: (size = @brushSize, color = @brushColor.getStyle(), feather = @brushSoftness ) ->
 		# Set Properties
-		@drawColor.setStyle color
-		@drawSize = size
-		@drawFeather = feather
+		@brushColor.setStyle color
+		@brushSize = size
+		@brushSoftness = feather
 		# Set Context
 		@context.lineCap = "round"
 		@context.lineJoin = "round"
 		@context.lineWidth = size
 		@context.strokeStyle = color
-		# @context.globalCompositeOperation = "overlay"
-		# @context.globalCompositeOperation = "screen"
 
 	setHistory: ( x , y ) ->
 		@history.x = x
 		@history.y = y
 
 	setSize: (w = @width, h = @height) ->
+		@width = w
+		@height = h
 		@canvas.width = w
 		@canvas.height = h
+		if @backgroundColor
+			@fill @backgroundColor
 
 	drawOn: ( pos ) ->
 		if not @history.x? or not @history.y?
@@ -65,19 +75,23 @@ class DrawPad
 		@setHistory pos.x , pos.y
 
 	fill: ( r , g , b , a = 1 ) ->
-		r = Math.round(r * 100)
-		g = Math.round(g * 100)
-		b = Math.round(b * 100)
-		text = "rgba(#{r}%,#{g}%,#{b}%,#{a})"
+		if typeof r is 'string'
+			@backgroundColor = r
+		else if typeof r is 'number'
+			r = Math.round(r * 100)
+			g = Math.round(g * 100)
+			b = Math.round(b * 100)
+			text = "rgba(#{r}%,#{g}%,#{b}%,#{a})"
+			@backgroundColor = text
 		@context.rect 0 , 0 , @width , @height
-		@context.fillStyle = text
+		@context.fillStyle = @backgroundColor
 		@context.fill()
 
 	line: ( from , to ) ->
 		v = new THREE.Vector2 to.x - from.x , to.y - from.y
 		d = v.length()
 		i = 0
-		step = 2
+		step = 1
 		while i < d
 			s = i / d
 			ns = 1 - s
@@ -87,22 +101,34 @@ class DrawPad
 			i += step
 
 	dot: (x,y) ->
+		# short hands
 		ctx = @context
-		w = @drawSize
-		f = @drawFeather
-		r = Math.round( @drawColor.r * 100 ) + "%"
-		g = Math.round( @drawColor.g * 100 ) + "%"
-		b = Math.round( @drawColor.b * 100 ) + "%"
-		# draw
+		w = @brushSize
+		# color
+		r = Math.round( @brushColor.r * 100 ) + "%"
+		g = Math.round( @brushColor.g * 100 ) + "%"
+		b = Math.round( @brushColor.b * 100 ) + "%"
+		str = "rgba(#{r},#{g},#{b},"
+		# fillStyle
 		grad = ctx.createRadialGradient x , y , 0 , x , y , w
-		grad.addColorStop f , "rgba(#{r},#{g},#{b},1)"
-		grad.addColorStop 1 , "rgba(#{r},#{g},#{b},0)"
+		grad.addColorStop 1 - @brushSoftness , str + @brushOpacity + ")"
+		grad.addColorStop 1 , str + "0)"
 		ctx.fillStyle = grad
 		# punch
-		@context.beginPath()
-		@context.arc x , y , @drawSize , 0 , 2 * Math.PI
-		@context.fill()
-		@context.closePath()
+		ctx.beginPath()
+		ctx.arc x , y , w , 0 , PI2
+		ctx.fill()
+		ctx.closePath()
+
+	drawImage: (img) ->
+		@context.drawImage img , 0 , 0 , @width , @height
+
+	drawData: (data, cb) ->
+		img = new Image()
+		img.onload = =>
+			@drawImage img
+			if cb? then cb()
+		img.src = data
 
 	drawOff: ->
 		@drawing = false
@@ -119,16 +145,49 @@ class DrawPad
 		@drawOff()
 
 	onMouseMove: (evt) ->
+		pos = MouseUtils.getPos( evt.target , evt.clientX , evt.clientY )
+		@cursorTo pos.x , pos.y
 		if not @drawing then return
-		@drawOn MouseUtils.getPos( evt.target , evt.clientX , evt.clientY )
+		@drawOn pos
 		@events.emit "drawing"
+
+	hideCursor: (remove) ->
+		@cursor.fadeOut 50 , -> if remove then @cursor.remove()
+	showCursor: (x,y) ->
+		if not @cursor? then @setupCursor()
+		@cursor.fadeIn 50
+		if x? and y? then @cursorTo x , y
+
+	cursorTo: (x,y) ->
+		size = @brushSize * 2
+		x = x - @brushSize
+		y = y - @brushSize
+		@cursor.css
+			left: x
+			top: y
+			'border-color' : "#{@brushColor.getStyle()}"
+			width: size
+			height: size
+		blur = "blur(#{ @brushSoftness }px)"
+		@cursor.css "filter" , blur
+		@cursor.css "webkitFilter" , blur
+
+	setupCursor: () ->
+		# cursor
+		@cursor = $ '<div class="cursor"></div>'
+		$ @canvas
+			.addClass 'hideCursor'
+		# $(@canvas).append @cursor
+		# @cursor.appendTo @canvas
+		$(@canvas).parent().append @cursor
 	
 	showDebugInterface: (gui) ->
 		f = gui.addFolder "DrawPad"
 		f.open()
-		f.add( @drawColor , "r" , 0 , 0.8 ).name("brush:birth rate")
-		f.add( @drawColor , "g" , 0 , 0.7 ).name("brush:kill rate")
-		f.add( @drawColor , "b" , 0.05 , 0.5 ).name("brush:sim step")
-		f.add( @ , "drawSize" , 5 , 100 ).name("brush:size")
+		f.add( @ , 'brushSoftness' , 0 , 1 )
+		# f.add( @brushColor , "r" , 0 , 0.8 ).name("brush:birth rate")
+		# f.add( @brushColor , "g" , 0 , 0.7 ).name("brush:kill rate")
+		# f.add( @brushColor , "b" , 0.05 , 0.5 ).name("brush:sim step")
+		# f.add( @ , "brushSize" , 5 , 100 ).name("brush:size")
 
 module.exports = DrawPad

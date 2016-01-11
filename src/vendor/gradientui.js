@@ -20,26 +20,27 @@ module.exports = function($) {
     }
     
     var Dragger = function(parent, position, color) {
+        // PROPERTIES
         this.parent = parent;
-        this.parent.$this.append('<div class="gradient-dragger"></div>');
-        this.$this = parent.$this.children('.gradient-dragger:last');
-        this.width = parent.$this.children('.gradient-view').width() - 7;
         this.position = position;
         this.color = color;
         this.dragging = false;
         this.moved = false;
         this.oldleft = undefined
         this.mousedownx = undefined;
-        this.$text = $('<span></span>')
+        // DOM
+        this.$this = $('<div class="gradient-dragger"></div>')
+        this.$text = $('<span />')
+        this.parent.$this.append( this.$this );
         this.$this.append( this.$text )
-        this.$this.css("left", this.position*this.width);
+        this.$this.css("left", this.position * this.parent.width);
         this.$this.css("background-color", this.color);
-        
+        // EVENT
         this.$this.bind("click.dragger", {this : this}, function(event){event.data.this.click(event)});
         this.$this.bind("mousedown.dragger", {this : this}, function(event){event.data.this.mousedown(event)});
         $(window).bind("mouseup.dragger", {this : this}, function(event){event.data.this.mouseup(event)});
         $(window).bind("mousemove.dragger", {this : this}, function(event){event.data.this.mousemove(event)});
-
+        // COLOR PICKER
         var dragger = this
         this.$this.spectrum({
             replacerClassName: 'customSpectrum',
@@ -53,9 +54,7 @@ module.exports = function($) {
 
     }
     
-    Dragger.prototype.click = function(event) {
-        // if(this.moved) { return; }
-    }
+    Dragger.prototype.click = function(event) {}
     
     Dragger.prototype.mousedown = function(event) {
         this.oldleft = parseInt(this.$this.css("left"), 10);
@@ -74,11 +73,11 @@ module.exports = function($) {
         if(!this.dragging) { return; }
         
         var diff = event.pageX - this.mousedownx;
-        var newleft = clamp(this.oldleft + diff, 0, this.width);
+        var newleft = clamp(this.oldleft + diff, 0, this.parent.width );
+        var newpos = newleft / this.parent.width
         
-        this.position = newleft / this.width;
-        this.$this.css("left", newleft);
-        this.displayPosition(this.position);
+        this.setPosition( newpos );
+        this.displayPosition( this.position );
         this.parent.redraw();
 
         this.moved = true;
@@ -95,56 +94,54 @@ module.exports = function($) {
     }
     
     Dragger.prototype.setPosition = function(pos) {
-        pos = clamp(pos, 0.0, 1.0);
-        var newleft = pos*this.width;
-        
-        this.$this.css("left", newleft);
         this.position = pos;
+        this.$this.css("left", pos * this.parent.width);
     }
     
     Dragger.prototype.setColor = function(color) {
         this.color = color;
         this.$this.css("background-color", color);
+        this.$this.spectrum('set',color);
         this.parent.redraw();
     }
     
     var Gradient = function(parent, values) {
-        this.$this = parent;
-        
-        // Disable selection.
-        this.$this.get(0).onselectstart = function(){return false;};
-        
-        this.$this.css("position", "relative");
-        this.width = this.$this.width();
-        this.height = this.$this.height();
-        this.$this.append('<canvas class="gradient-view"></canvas>');
-        
-        this.gradientview = this.$this.children('.gradient-view:first');
-        this.gradientview.width(this.width);
-        this.gradientview.height(this.height - 21);
-        this.gradientview.css('position', 'absolute');
-        this.gradientview.css('left', 0);
-        
+        // Canvas
+        this.gradientview = $('<canvas class="gradient-view"></canvas>');
         this.canvas = this.gradientview.get(0);
-        this.canvas.width = this.gradientview.width();
-        this.canvas.height = this.gradientview.height();
         this.ctx = this.canvas.getContext('2d');
-
+        // DOM
+        this.$this = parent;
+        this.$this.append(this.gradientview);
+        // Properties
+        this.width = 0;
+        this.height = 0;
+        this.draggerSize = 8;
+        // draggers
         this.draggers = [];
-        for(var i=0; i < values.length; i++)
+        for ( var i = 0, len = values.length; i < len; i++ ) {
             this.draggers.push(new Dragger(this, values[i][0], values[i][1]));
-        
+        }
+        // Init Size & Display
+        this.resize();
         this.redraw();
+    }
+
+    Gradient.prototype.resize = function() {
+        this.width = this.gradientview.width() - 6;
+        this.height = this.gradientview.height();
+        this.draggers.forEach(function(dragger){
+            dragger.setPosition( dragger.position )
+        })
     }
     
     Gradient.prototype.updateValues = function() {
         var aux = this.draggers.map(function(a){return [a.position, a.color];});
         aux.sort(function(a,b){return a[0]-b[0];});
-        
         this.values = aux;
-        
-        if(this.callback !== undefined)
+        if(this.callback !== undefined) {
             this.callback.fn(this.callback.data);
+        }
     }
     
     Gradient.prototype.setValues = function(values) {
@@ -183,6 +180,10 @@ module.exports = function($) {
             
             return this.each(function(){
                 var aux = new Gradient($(this), settings.values);
+                $(window).on('resize',function(){
+                    aux.resize()
+                    aux.redraw()
+                })
                 $(this).data("gradient", aux);
             });
         },

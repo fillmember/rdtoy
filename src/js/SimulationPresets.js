@@ -1,4 +1,4 @@
-var presets = [
+module.exports = [
     { 
         name: "Default",
         feed: 0.37,
@@ -10,7 +10,7 @@ var presets = [
         kill: 0.62
     },
     { 
-        name: "Pulsating solitons",
+        name: "Pulsating Solitons",
         feed: 0.25,
         kill: 0.6
     },
@@ -35,17 +35,17 @@ var presets = [
         kill: 0.51
     },
     { 
-        name: "Chaos and holes (by clem)",
+        name: "Chaos & Holes",
         feed: 0.34,
         kill: 0.56
     },
     { 
-        name: "Moving spots",
+        name: "Moving Spots",
         feed: 0.14,
         kill: 0.54
     },
     { 
-        name: "Spots and loops",
+        name: "Spots & Loops",
         feed: 0.18,
         kill: 0.51
     },
@@ -55,8 +55,8 @@ var presets = [
         kill: 0.45
     },
     { 
-        name: "The U-Skate World",
+        name: "U-Skate",
         feed: 0.62,
         kill: 0.6093
     }
-];
+]

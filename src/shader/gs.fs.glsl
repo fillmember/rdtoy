@@ -18,12 +18,20 @@ void main() {
     float sy = step.y * vEnv.b * 10.0;
 
     vec2 uv  = texture2D( tSource, vUv ).rg;
-    vec2 uv0 = texture2D( tSource, vUv + vec2( -sx, 0.0 ) ).rg;
-    vec2 uv1 = texture2D( tSource, vUv + vec2(  sx, 0.0 ) ).rg;
-    vec2 uv2 = texture2D( tSource, vUv + vec2( 0.0, -sy ) ).rg;
-    vec2 uv3 = texture2D( tSource, vUv + vec2( 0.0,  sy ) ).rg;
-
-    vec2 lapl = 0.25 * ( uv0 + uv1 + uv2 + uv3 ) - uv;
+    vec2 lapl =
+         + 0.05 * (
+            texture2D( tSource, vUv + vec2( -sx, -sy ) ).rg +
+            texture2D( tSource, vUv + vec2(  sx, -sy ) ).rg +
+            texture2D( tSource, vUv + vec2( -sx,  sy ) ).rg +
+            texture2D( tSource, vUv + vec2(  sx,  sy ) ).rg
+        )
+         + 0.20 * (
+            texture2D( tSource, vUv + vec2( -sx, 0.0 ) ).rg +
+            texture2D( tSource, vUv + vec2(  sx, 0.0 ) ).rg +
+            texture2D( tSource, vUv + vec2( 0.0, -sy ) ).rg +
+            texture2D( tSource, vUv + vec2( 0.0,  sy ) ).rg
+        )
+         - uv;
     float reaction = uv.r * uv.g * uv.g;
     float du = 1.0 * lapl.r - reaction +  feed * (1.0 - uv.r);
     float dv = 0.5 * lapl.g + reaction - (feed + kill) * uv.g;

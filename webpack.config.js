@@ -6,7 +6,7 @@ var config = {
 
   // This is the main file that should include all other JS files
   entry: {
-    Main: "./src/js/main.coffee"
+    Main: "./src/js/Main.coffee"
   },
   output: {
     path: path.join(__dirname, "dist", "js"),

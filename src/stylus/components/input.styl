@@ -1,0 +1,164 @@
+radius = 6px
+borderWidth = 2px
+borderColor = #333
+borderStyle = solid
+borderArgs = borderWidth borderStyle borderColor
+backgroundColor = #FFF
+
+input, button, label
+	cursor pointer
+	outline none
+
+button
+.button
+	text-align center
+	padding 0
+	margin 0
+	background backgroundColor
+	border-radius radius
+	cursor pointer
+	color borderColor
+	text-decoration none
+	// Inner Layout
+	display flex
+	flex-direction column
+	align-items center
+	i.fa
+		position relative
+		top 0.125em
+	&:disabled
+		position relative
+		&:before
+		&:after
+			z-index 1
+			content ''
+			display block
+			width w = 33%
+			height h = 2px
+			position absolute
+			left "calc( 50% - %s )" % (w / 2)
+			top "calc( 50% - %s )" % (h / 2)
+			transform rotateZ(45deg)
+			background #000
+			// opacity 0.66
+		&:before
+			transform rotateZ(-45deg)
+		&:hover
+		&:active
+			background inherit
+	
+.checked
+	background #0F9
+
+.btnGroup
+	button
+	.button
+		border-radius 0
+		&:only-child
+			border-radius radius
+		&:not(:only-child)
+			&:first-child
+				border-radius radius 0 0 radius
+			&:last-child
+				border-radius 0 radius radius 0
+			&:not(:last-child)
+				border-right 0
+
+// SELECT
+
+// RADIO
+input[type=radio]
+	display none
+
+// Input Checkbox Button
+input[type=checkbox].button
+	display none
+
+// INPUT CHECHBOX TOGGLE
+
+checkboxHeight = 20px
+checkboxWidth = checkboxHeight * 1.618
+
+input[type=checkbox].toggle
+	display none
+	& + label
+		position relative
+		cursor pointer
+		outline none
+		user-select none
+		margin auto 0
+		display block
+		height checkboxHeight
+		width checkboxWidth
+		background-color borderColor
+		border-radius checkboxHeight * 0.5
+		
+		&:before
+		&:after
+			display block
+			position absolute
+			content ""
+		&:before
+			transition background .2s
+			top borderWidth
+			left borderWidth
+			bottom borderWidth
+			right borderWidth
+			background-color backgroundColor
+			border-radius checkboxHeight * 0.5
+		&:after
+			transition margin .2s
+			width radius * 2
+			top borderWidth
+			left borderWidth
+			bottom borderWidth
+			border borderArgs
+			border-radius radius * 2
+			background-color backgroundColor
+	&:checked + label
+		&:before
+			background-color #FF0
+		&:after
+			margin-left checkboxWidth - checkboxHeight
+
+// INPUT RANGE
+
+sliderHeight = 18px
+sliderThumbWidth = 13px
+sliderThumbHeight = 20px
+
+input[type=range]
+	-webkit-appearance none
+	border-radius sliderHeight * 0.5
+
+	&::-webkit-slider-runnable-track
+		height sliderHeight
+		background backgroundColor
+		border-radius sliderHeight * 0.5
+
+	&::-webkit-slider-thumb
+		height sliderThumbHeight
+		width sliderThumbWidth
+		border-radius sliderThumbHeight * 0.5
+		background backgroundColor
+		margin-top (sliderHeight - sliderThumbHeight) - borderWidth * 0.5
+		-webkit-appearance none
+
+	&:focus
+		outline none
+
+// YEE
+
+button
+.button
+select
+input[type=range]::-webkit-slider-runnable-track,
+input[type=range]::-webkit-slider-thumb
+	user-select none
+	border borderArgs
+
+button:active
+.button:active
+input[type=checkbox]:checked + label i.on:after
+input[type=range]:active::-webkit-slider-thumb
+	background #FF0
