@@ -306,7 +306,7 @@ h5 {
   font-size: 1em;
 }
 body {
-  background-color: #ccc;
+  background-color: #eee;
 }
 #canvasContainer {
   line-height: 0;
@@ -317,10 +317,6 @@ body {
   position: absolute;
   top: 0;
   left: 0;
-}
-#canvasContainer canvas:first-child {
-  -webkit-box-shadow: #999 5px 5px 0;
-  box-shadow: #999 5px 5px 0;
 }
 .hide {
   display: none !important;
@@ -354,11 +350,12 @@ body {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-  width: 250px;
+  width: 300px;
   padding: 5px 7.5px 5px 5px;
   height: 100vh;
   overflow: auto;
   background: #fff;
+  line-height: 1.5;
 }
 #controls hr {
   width: 80%;
@@ -366,15 +363,23 @@ body {
   border-style: solid;
   border-color: #ccc;
 }
-#controls .button,
-#controls button {
-  margin: 0;
-  padding: 5px;
-}
 #controls .sectionHeader i.fa,
 #controls button i.fa,
 #controls .button i.fa {
   display: block;
+}
+#controls button,
+#controls .button {
+  margin: 0;
+  padding: 3px 5px 5px 5px;
+}
+#controls button span.text,
+#controls .button span.text {
+  margin: 2px 0 0 0;
+}
+#controls button i.fa ~ span.text,
+#controls .button i.fa ~ span.text {
+  margin: 2px 0 -4px 0;
 }
 #controls span.text {
   -webkit-box-sizing: border-box;
@@ -443,8 +448,13 @@ body {
 .sliderLabel {
   width: 31.2%;
 }
-.col.displayContainer:not(:last-of-type) {
-  margin-bottom: 0px !important;
+.toggleContainer {
+  -webkit-box-pack: distribute;
+  -moz-box-pack: distribute;
+  -o-box-pack: distribute;
+  -ms-flex-pack: distribute;
+  -webkit-justify-content: space-around;
+  justify-content: space-around;
 }
 .displayLabel {
   width: 33%;
@@ -459,20 +469,10 @@ select {
   -webkit-box-flex: 1;
   -moz-box-flex: 1;
   -o-box-flex: 1;
-  -ms-box-flex: 1;
   box-flex: 1;
-  -webkit-flex-grow: 1;
-  flex-grow: 1;
-  -webkit-flex-basis: 0;
-  flex-basis: 0;
-}
-.section {
-  -webkit-transition: max-height 0.2s linear;
-  -moz-transition: max-height 0.2s linear;
-  -o-transition: max-height 0.2s linear;
-  -ms-transition: max-height 0.2s linear;
-  transition: max-height 0.2s linear;
-  max-height: 100vh;
+  -webkit-flex: 1 0 0;
+  -ms-flex: 1 0 0;
+  flex: 1 0 0;
 }
 .section:after {
   -webkit-transition: opacity 0.4s;
@@ -496,18 +496,22 @@ select {
 }
 .section.minimized {
   margin-bottom: 5px;
-  max-height: 3.125em;
+}
+.section.minimized .item,
+.section.minimized .col,
+.section.minimized .btnGroup {
+  display: none !important;
 }
 .section.minimized:after {
   opacity: 1;
   -ms-filter: none;
   filter: none;
 }
-.section.minimized.minimal {
-  max-height: 2em;
-}
 .section.minimal .sliderLabel {
-  width: 1.25em;
+  width: 14.5%;
+}
+.section.minimal .sliderLabel i.fa {
+  margin-left: 40%;
 }
 .section.minimal i.fa + span.text {
   display: none;

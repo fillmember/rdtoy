@@ -83,9 +83,7 @@ class ReactiveDiffusionSimulator
 
 	setRunning: (t) ->
 		@running = t
-		$('#ready-run-button')
-			.data 'ui'
-			.update t
+		$('#ready-run-button').data('ui').update @running
 
 	setSize: ( w = @width , h = @height ) ->
 		texw = Math.min maxTextureSize , 0.5 * w
@@ -152,6 +150,7 @@ class ReactiveDiffusionSimulator
 	run: () ->
 		if @running then @step()
 		@present()
+		@events.emit 'run' , performance.now()
 		window.requestAnimationFrame => @run()
 
 	pause: () -> @running = false

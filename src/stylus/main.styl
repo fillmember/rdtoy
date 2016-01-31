@@ -8,10 +8,8 @@
 @import './components/flex.styl'
 @import './components/typography.styl'
 
-controls-width = 250px
-
 body
-	background-color #CCC
+	background-color #EEE
 
 #canvasContainer
 	line-height 0
@@ -23,7 +21,7 @@ body
 		top 0
 		left 0	
 		&:first-child
-			box-shadow #999 5px 5px 0
+			// box-shadow #999 5px 5px 0
 
 .hide
 	display none !important
@@ -46,11 +44,12 @@ body
 
 #controls
 	box-sizing border-box
-	width controls-width
+	width 300px
 	padding 5px 7.5px 5px 5px
 	height 100vh
 	overflow auto
 	background #FFF
+	line-height 1.5
 	
 	hr
 		width 80%
@@ -58,16 +57,20 @@ body
 		border-style solid
 		border-color #CCC
 	
-	.button
-	button
-		margin 0
-		padding 5px
-	
 	.sectionHeader i.fa
 	button i.fa
 	.button i.fa
 		display block
-		
+	
+	button
+	.button
+		margin 0
+		padding 3px 5px 5px 5px
+		span.text
+			margin 2px 0 0 0
+		i.fa ~ span.text
+			margin 2px 0 -4px 0
+
 	span.text
 		box-sizing border-box
 		&.hide
@@ -126,13 +129,14 @@ body
 
 .sliderLabel
 	width 31.2%
-.col.displayContainer:not(:last-of-type)
-	margin-bottom 0px !important
+// .col.displayContainer:not(:last-of-type)
+// 	margin-bottom 0 !important
+.toggleContainer
+	justify-content space-around
 .displayLabel
 	width 33%
 
 .button, button, input, .col, .item, h4.itemHeader, select
-	flex-grow 1
-	flex-basis 0
+	flex 1 0 0
 
 @import './components/minimized-minimal-design.styl'

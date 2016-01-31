@@ -51,11 +51,11 @@ class GradientMappingMaterial
 		section.append UI.btnGroup [
 			UI.button
 				icon: 'fa-paw'
-				name: 'Random Color'
+				name: 'colorful surprise'
 				action: => @randomColorScheme()
 			UI.button
 				icon: 'fa-adjust'
-				name: 'B&W'
+				name: 'black & white'
 				action: =>
 					b = new THREE.Color(0,0,0)
 					w = new THREE.Color(1,1,1)

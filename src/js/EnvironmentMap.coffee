@@ -162,6 +162,7 @@ class EnvironmentMap extends DrawPad
 									reader = new FileReader()
 									reader.onload = (e) ->
 										envmap.drawData e.target.result , ->
+											envmap.videoTag.src = ''
 											envmap.switchToCanvasTexture()
 									reader.readAsDataURL file
 								else

@@ -1,6 +1,7 @@
 .section
-	transition max-height .2s linear
-	max-height 100vh
+	// transition max-height .4s linear
+	// max-height 100vh
+	
 	&:after
 		transition opacity .4s
 		content ''
@@ -14,16 +15,23 @@
 
 .section.minimized
 	margin-bottom 5px
-	max-height 3.125em
+	
+	.item
+	.col
+	.btnGroup
+		display none !important
+
 	&:after
 		opacity 1
 		
-	&.minimal
-		max-height 2em
+	// &.minimal
+	// 	max-height 2em
 
 .section.minimal
 	.sliderLabel
-		width 1.25em
+		width 14.5%
+		i.fa
+			margin-left 40%
 	i.fa + span.text
 		display none
 

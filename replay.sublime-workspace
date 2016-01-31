@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"download",
+				"downloadImage"
+			],
+			[
 				"switchT",
 				"switchToCanvasTexture"
 			],
@@ -203,14 +207,6 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "src/js/EnvironmentMap.coffee",
-			"settings":
-			{
-				"buffer_size": 4425,
-				"line_ending": "Unix"
-			}
-		}
 	],
 	"build_system": "",
 	"build_system_choices":
@@ -219,10 +215,18 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 335.0,
-		"last_filter": "JSON",
+		"height": 63.0,
+		"last_filter": "",
 		"selected_items":
 		[
+			[
+				"javascript",
+				"Set Syntax: JavaScript"
+			],
+			[
+				"wordw",
+				"Word Wrap: Toggle"
+			],
 			[
 				"JSON",
 				"Pretty JSON: Format (Pretty Print) JSON"
@@ -324,10 +328,6 @@
 				"Set Syntax: Apache Conf"
 			],
 			[
-				"javascript",
-				"Set Syntax: JavaScript"
-			],
-			[
 				"html",
 				"Set Syntax: HTML"
 			],
@@ -401,10 +401,6 @@
 			],
 			[
 				"word",
-				"Word Wrap: Toggle"
-			],
-			[
-				"wordw",
 				"Word Wrap: Toggle"
 			],
 			[
@@ -743,21 +739,35 @@
 	],
 	"file_history":
 	[
-		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/EnvironmentMap.coffee",
-		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/ReactiveDiffusionSimulator.coffee",
-		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/stylus/main.styl",
 		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/Main.coffee",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/AnimationExporterTwo.coffee",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/vendor/whammy/whammy.js",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/AnimationExporter.coffee",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/ReactiveDiffusionSimulator.coffee",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/vendor/ccapture/CCapture.js",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/stylus/main.styl",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/stylus/components/minimized-minimal-design.styl",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/GradientMappingMaterial.coffee",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/ccapture/README.md",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/ccapture/CCapture.js",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/stylus/components/input.styl",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/whammy/whammy.js",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/ccapture/CCapture.min.js",
+		"/Users/fillmember/Desktop/NumbersInTheDark.htm",
 		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/jade/index.jade",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/EnvironmentMap.coffee",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/utils/InterfaceUtils.coffee",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/gulp/watch.coffee",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/package.json",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/gulpfile.coffee",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/stylus/components/mixins.styl",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/node_modules/browser-sync/node_modules/chokidar/node_modules/fsevents/node_modules/node-uuid/uuid.js",
+		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/shader/gs.fs.glsl",
 		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/stylus/components/flex.styl",
 		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/DrawPad.coffee",
-		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/AnimationExporter.coffee",
 		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/vendor/Math.uuid.js",
-		"/Users/fillmember/Dropbox/Works/2016/rdplay/gulp/watch.coffee",
 		"/Users/fillmember/Dropbox/Works/2016/rdplay/gulp/server.coffee",
-		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/utils/InterfaceUtils.coffee",
-		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/stylus/components/input.styl",
 		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/stylus/components/typography.styl",
-		"/Users/fillmember/Dropbox/Works/2016/rdplay/package.json",
 		"/Users/fillmember/Dropbox/Works/2016/rdplay/gulp/default.coffee",
 		"/Users/fillmember/Dropbox/Works/2016/rdplay/webpack.config.js",
 		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/main.coffee",
@@ -765,13 +775,9 @@
 		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/WebSocket",
 		"/Users/fillmember/Dropbox/Works/2016/rdplay/node_modules/websocket/package.json",
 		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/utils/MouseUtils.coffee",
-		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/shader/gs.fs.glsl",
 		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/vendor/gradientui.js",
-		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/js/GradientMappingMaterial.coffee",
-		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/stylus/components/minimized-minimal-design.styl",
 		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/shader/gradient-mapping.fs.glsl",
 		"/Users/fillmember/Dropbox/Works/2016/rdplay/gulp/build.coffee",
-		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/stylus/components/mixins.styl",
 		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/stylus/component/input.styl",
 		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/stylus/component/minimized-minimal-design.styl",
 		"/Users/fillmember/Dropbox/Works/2016/rdplay/src/vendor/gradientui.css",
@@ -860,17 +866,7 @@
 		"/Users/fillmember/Dropbox/Works/2015/tenplate/gulp/jade.js",
 		"/Users/fillmember/Dropbox/Works/2015/tenplate/gulp/main.js",
 		"/Users/fillmember/Dropbox/Works/2015/tenplate/gulp/clean.js",
-		"/Users/fillmember/AR/shaderPlayground/w02-gray-scott/gulpfile.js",
-		"/Users/fillmember/AR/orpheusDev/gulp/webpack.js",
-		"/Users/fillmember/AR/mb360/gulp/webpack.js",
-		"/Users/fillmember/Dropbox/Works/2015/tenplate/gulp/webpack.js",
-		"/Users/fillmember/tenplate/gulp/webpack.js",
-		"/Users/fillmember/tenplate/webpack.config.js",
-		"/Users/fillmember/tenplate/src/js/main.js",
-		"/Users/fillmember/tenplate/gulp/browsersync.js",
-		"/Users/fillmember/tenplate/node_modules/webpack-dev-server/node_modules/webpack-dev-middleware/middleware.js",
-		"/Users/fillmember/tenplate/node_modules/webpack/node_modules/memory-fs/lib/MemoryFileSystem.js",
-		"/Users/fillmember/tenplate/build/index.html"
+		"/Users/fillmember/AR/shaderPlayground/w02-gray-scott/gulpfile.js"
 	],
 	"find":
 	{
@@ -906,6 +902,42 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"'2d'",
+			"capturing",
+			"'update'",
+			", ->",
+			"timeout!",
+			"timeout",
+			".options",
+			"makeModeButton",
+			" * 2",
+			"toggleContainer",
+			" i.fa",
+			"controls-width",
+			"update",
+			"then ",
+			"@renderSettings",
+			"quality",
+			"@events.emit 'start'",
+			"CCWebMEncoder",
+			"_handlers",
+			"CCapture",
+			"./",
+			"requestAnimationFrame",
+			"verbose",
+			"S.MODE_",
+			"@options",
+			"modeUpdate",
+			"Description",
+			"M_",
+			"Modes",
+			"MODE_",
+			"animExport",
+			"Whammy",
+			"font7",
+			"switchToVideoTexture",
+			"video",
+			"coffee",
 			"Nearest",
 			"THREE.Texture",
 			"@updateTexture()",
@@ -997,43 +1029,7 @@
 			"$controls",
 			"@options.modes.",
 			"exportOpt.",
-			"updateDisplayTextArea()",
-			"animExport.",
-			"animExport",
-			"parent",
-			"animationFrame",
-			"@protocols",
-			"@type",
-			"@filename",
-			"setEndFrame",
-			"setFrame",
-			"startFrame",
-			"frame",
-			"finish",
-			"start",
-			"ws.send 'serverready'",
-			"websocketReady",
-			"sendFrame",
-			"sendStartMessage",
-			"itemLabel",
-			"UI.col [ ",
-			"UI.col",
-			"UI.col [ ",
-			"exportOpt.MODE",
-			"1",
-			"exportOptions",
-			"duration",
-			"exportFromFrame",
-			"solo: true",
-			"font-size",
-			"text-transform lowercase",
-			"font-weight",
-			"font",
-			"font-size",
-			"font-siz",
-			"font",
-			"solo: true",
-			"checked: true"
+			"updateDisplayTextArea()"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -1079,38 +1075,8 @@
 	"groups":
 	[
 		{
-			"selected": 0,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "src/js/EnvironmentMap.coffee",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 4425,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								3141,
-								3141
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Better CoffeeScript/CoffeeScript.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 1461.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				}
 			]
 		}
 	],
@@ -1167,48 +1133,144 @@
 		"selected_items":
 		[
 			[
-				"envmap.coffee",
-				"src/js/EnvironmentMap.coffee"
+				"whammy.js",
+				"src/vendor/whammy/whammy.js"
 			],
 			[
-				"envmap",
-				"src/js/EnvironmentMap.coffee"
+				"animationexporter.coffee",
+				"src/js/AnimationExporter.coffee"
+			],
+			[
+				"simulator",
+				"src/js/ReactiveDiffusionSimulator.coffee"
 			],
 			[
 				"simulator.coffee",
 				"src/js/ReactiveDiffusionSimulator.coffee"
 			],
 			[
-				"flex.styl",
-				"src/stylus/components/flex.styl"
-			],
-			[
-				"main.styl",
-				"src/stylus/main.styl"
-			],
-			[
-				"dimula",
+				"simual",
 				"src/js/ReactiveDiffusionSimulator.coffee"
-			],
-			[
-				"index.jade",
-				"src/jade/index.jade"
 			],
 			[
 				"main.coffee",
 				"src/js/Main.coffee"
 			],
 			[
-				"drawpad.coffee",
-				"src/js/DrawPad.coffee"
+				"ccapture.js",
+				"src/vendor/ccapture/CCapture.js"
+			],
+			[
+				"minimized",
+				"src/stylus/components/minimized-minimal-design.styl"
+			],
+			[
+				"material.coffee",
+				"src/js/GradientMappingMaterial.coffee"
+			],
+			[
+				"main.styl",
+				"src/stylus/main.styl"
+			],
+			[
+				"input.styl",
+				"src/stylus/components/input.styl"
+			],
+			[
+				"reactive",
+				"src/js/ReactiveDiffusionSimulator.coffee"
+			],
+			[
+				"difsimu",
+				"src/js/ReactiveDiffusionSimulator.coffee"
+			],
+			[
+				"animation",
+				"src/js/AnimationExporter.coffee"
+			],
+			[
+				"whyammy",
+				"src/js/whammy/whammy.js"
+			],
+			[
+				"ccapture.min.js",
+				"src/js/ccapture/CCapture.min.js"
+			],
+			[
+				"animexpo",
+				"src/js/AnimationExporter.coffee"
+			],
+			[
+				"ccapture/readme.md",
+				"src/js/ccapture/README.md"
+			],
+			[
+				"index.jade",
+				"src/jade/index.jade"
+			],
+			[
+				"environmentmap.coffee",
+				"src/js/EnvironmentMap.coffee"
+			],
+			[
+				"reasimul",
+				"src/js/ReactiveDiffusionSimulator.coffee"
+			],
+			[
+				"envmap.coffee",
+				"src/js/EnvironmentMap.coffee"
+			],
+			[
+				"interfaceutils",
+				"src/js/utils/InterfaceUtils.coffee"
+			],
+			[
+				"ui",
+				"src/js/utils/InterfaceUtils.coffee"
 			],
 			[
 				"watch.coffee",
 				"gulp/watch.coffee"
 			],
 			[
-				"animexpo",
-				"src/js/AnimationExporter.coffee"
+				"package.json",
+				"package.json"
+			],
+			[
+				"gulpfile.coffee",
+				"gulpfile.coffee"
+			],
+			[
+				"components.styl",
+				"src/stylus/components/mixins.styl"
+			],
+			[
+				"uuid.js",
+				"node_modules/browser-sync/node_modules/chokidar/node_modules/fsevents/node_modules/node-uuid/uuid.js"
+			],
+			[
+				"ui.coff",
+				"src/js/utils/InterfaceUtils.coffee"
+			],
+			[
+				"fs.gs",
+				"src/shader/gs.fs.glsl"
+			],
+			[
+				"envmap",
+				"src/js/EnvironmentMap.coffee"
+			],
+			[
+				"flex.styl",
+				"src/stylus/components/flex.styl"
+			],
+			[
+				"dimula",
+				"src/js/ReactiveDiffusionSimulator.coffee"
+			],
+			[
+				"drawpad.coffee",
+				"src/js/DrawPad.coffee"
 			],
 			[
 				"server.coffee",
@@ -1217,10 +1279,6 @@
 			[
 				"anime",
 				"src/js/AnimationExporter.coffee"
-			],
-			[
-				"input.styl",
-				"src/stylus/components/input.styl"
 			],
 			[
 				"interfaceutils.coffee",
@@ -1233,10 +1291,6 @@
 			[
 				"animexporter.coffee",
 				"src/js/AnimationExporter.coffee"
-			],
-			[
-				"interfaceutils",
-				"src/js/utils/InterfaceUtils.coffee"
 			],
 			[
 				"animepo",
@@ -1289,14 +1343,6 @@
 			[
 				"gulp/default",
 				"gulp/default.coffee"
-			],
-			[
-				"animation",
-				"src/js/AnimationExporter.coffee"
-			],
-			[
-				"package.json",
-				"package.json"
 			],
 			[
 				"webpack.config",
@@ -1373,10 +1419,6 @@
 			[
 				"gradientui.css",
 				"src/vendor/gradientui.css"
-			],
-			[
-				"simulator",
-				"src/js/ReactiveDiffusionSimulator.coffee"
 			],
 			[
 				"inp",
@@ -1583,10 +1625,6 @@
 				"src/js/helpers/TextureHelper.coffee"
 			],
 			[
-				"reactive",
-				"src/js/ReactiveDiffusionSimulator.coffee"
-			],
-			[
 				"texturehelper.jade",
 				"src/jade/tests/texturehelper.jade"
 			],
@@ -1605,78 +1643,6 @@
 			[
 				"webconfig",
 				"webpack.config.js"
-			],
-			[
-				"drawpad.jade",
-				"src/jade/drawpad.jade"
-			],
-			[
-				"drawpad-main",
-				"src/js/drawpad-main.coffee"
-			],
-			[
-				"rds",
-				"src/js/ReactiveDiffusionSimulator.coffee"
-			],
-			[
-				"mouse",
-				"src/js/MouseClicker.coffee"
-			],
-			[
-				"rds.co",
-				"src/js/ReactiveDiffusionSimulator.coffee"
-			],
-			[
-				"build.coffe",
-				"gulp/build.coffee"
-			],
-			[
-				"babel-loader/readme.",
-				"node_modules/babel-loader/README.md"
-			],
-			[
-				"webpack.config.js",
-				"webpack.config.js"
-			],
-			[
-				"draw.f",
-				"src/shader/draw.fs.glsl"
-			],
-			[
-				"reactiv",
-				"src/js/ReactiveDiffusionSimulator.coffee"
-			],
-			[
-				"standard.vs",
-				"src/shader/standard.vs.glsl"
-			],
-			[
-				"gradient-mapping",
-				"src/shader/gradient-mapping.fs.glsl"
-			],
-			[
-				"gradientmapp",
-				"src/shader/gradient-mapping.fs.glsl"
-			],
-			[
-				"gradient-mapp",
-				"src/shader/gradient-mapping.fs.glsl"
-			],
-			[
-				"fs.glsl",
-				"src/shader/gs.fs.glsl"
-			],
-			[
-				"sv.glsl",
-				"src/shader/standard.vs.glsl"
-			],
-			[
-				"glsl",
-				"src/shader/standard.vs.glsl"
-			],
-			[
-				"index.html",
-				"dist/index.html"
 			]
 		],
 		"width": 0.0
