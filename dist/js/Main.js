@@ -44,7 +44,7 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $, $controls, $sectionEnv, $sectionReady, AnimationExporter, EnvironmentMap, MouseUtils, ReactiveDiffusionSimulator, THREE, UI, _, animExport, defaultBrushSize, envmap, exportSteps, hideDrawCanvas, ready, setBothBrushSize, setCanvasSize, showDrawCanvas;
+	var $, $controls, $sectionEnv, $sectionReady, AnimationExporter, EnvironmentMap, MouseUtils, ReactiveDiffusionSimulator, THREE, UI, _, animExport, defaultBrushSize, envmap, exportSteps, hideDrawCanvas, ready, setBothBrushSize, setCanvasSize, showDrawCanvas, toggleCursor;
 	
 	THREE = __webpack_require__(1);
 	
@@ -157,6 +157,11 @@
 	
 	hideDrawCanvas();
 	
+	toggleCursor = function(bool) {
+	  $(envmap.canvas).toggleClass('hideCursor', bool);
+	  return $('.cursor').css('opacity', bool ? 1 : 0);
+	};
+	
 	setBothBrushSize = function(v) {
 	  ready.uniforms.brushSize.value = v;
 	  return envmap.brushSize = v * 0.5;
@@ -169,10 +174,10 @@
 	  name: 'general',
 	  child: [
 	    UI.item([
-	      UI.itemHeader('Draw on...'), UI.btnGroup([
+	      UI.btnGroup([
 	        UI.button({
 	          icon: 'fa-flask',
-	          name: 'sim map',
+	          name: 'simulation',
 	          solo: true,
 	          checkbox: true,
 	          checked: true,
@@ -181,28 +186,56 @@
 	          action: hideDrawCanvas
 	        }), UI.button({
 	          icon: 'fa-map-o',
-	          name: 'env map',
+	          name: 'map',
 	          solo: true,
 	          checkbox: true,
 	          group: 'drawDecision',
 	          root: $controls,
 	          action: showDrawCanvas
 	        })
-	      ]), UI.col([
+	      ]), UI.slider({
+	        icon: 'fa-arrows-h',
+	        name: 'width',
+	        object: {
+	          n: Math.log2(ready.width) - 6
+	        },
+	        property: 'n',
+	        min: 1,
+	        max: 5,
+	        display: function(v) {
+	          return v + 'px';
+	        },
+	        transform: function(v) {
+	          return Math.pow(2, 6 + parseInt(v));
+	        },
+	        onChange: function(v) {
+	          return setCanvasSize(v, ready.height);
+	        }
+	      }), UI.slider({
+	        icon: 'fa-arrows-v',
+	        name: 'height',
+	        object: {
+	          n: Math.log2(ready.height) - 6
+	        },
+	        property: 'n',
+	        min: 1,
+	        max: 5,
+	        display: function(v) {
+	          return v + 'px';
+	        },
+	        transform: function(v) {
+	          return Math.pow(2, 6 + parseInt(v));
+	        },
+	        onChange: function(v) {
+	          return setCanvasSize(ready.width, v);
+	        }
+	      }), UI.col([
 	        UI.toggle({
-	          name: 'show brush',
+	          name: 'show cursor',
 	          checked: true,
-	          action: function(v) {
-	            if (v) {
-	              $(envmap.canvas).addClass('hideCursor');
-	              return $('.cursor').css('opacity', 1);
-	            } else {
-	              $('.hideCursor').removeClass('hideCursor');
-	              return $('.cursor').css('opacity', 0);
-	            }
-	          }
+	          action: toggleCursor
 	        }), UI.toggle({
-	          name: 'show env map',
+	          name: 'show map',
 	          checked: true,
 	          action: function(v) {
 	            return $(envmap.canvas).animate({
@@ -223,46 +256,6 @@
 	        max: 200,
 	        onInput: function(v) {
 	          return setBothBrushSize(v);
-	        }
-	      })
-	    ]), UI.item([
-	      UI.slider({
-	        icon: 'fa-arrows-h',
-	        name: 'width',
-	        object: {
-	          n: Math.log2(ready.width) - 6
-	        },
-	        property: 'n',
-	        min: 1,
-	        max: 5,
-	        display: function(v) {
-	          return v + 'px';
-	        },
-	        transform: function(v) {
-	          v = 6 + parseInt(v);
-	          return Math.pow(2, v);
-	        },
-	        onChange: function(v, slider) {
-	          return setCanvasSize(v, ready.height);
-	        }
-	      }), UI.slider({
-	        icon: 'fa-arrows-v',
-	        name: 'height',
-	        object: {
-	          n: Math.log2(ready.height) - 6
-	        },
-	        property: 'n',
-	        min: 1,
-	        max: 5,
-	        display: function(v) {
-	          return v + 'px';
-	        },
-	        transform: function(v) {
-	          v = 6 + parseInt(v);
-	          return Math.pow(2, v);
-	        },
-	        onChange: function(v, slider) {
-	          return setCanvasSize(ready.width, v);
 	        }
 	      })
 	    ])
@@ -58301,7 +58294,7 @@
 	
 	  ReactiveDiffusionSimulator.prototype.setRunning = function(t) {
 	    this.running = t;
-	    return $('#ready-run-button').data('ui').update(t);
+	    return $('#ready-run-button').data('ui').update(this.running);
 	  };
 	
 	  ReactiveDiffusionSimulator.prototype.setSize = function(w, h) {
@@ -58399,6 +58392,7 @@
 	      this.step();
 	    }
 	    this.present();
+	    this.events.emit('run', performance.now());
 	    return window.requestAnimationFrame((function(_this) {
 	      return function() {
 	        return _this.run();
@@ -58893,7 +58887,7 @@
 	    return section.append(UI.btnGroup([
 	      UI.button({
 	        icon: 'fa-paw',
-	        name: 'Random Color',
+	        name: 'colorful surprise',
 	        action: (function(_this) {
 	          return function() {
 	            return _this.randomColorScheme();
@@ -58901,7 +58895,7 @@
 	        })(this)
 	      }), UI.button({
 	        icon: 'fa-adjust',
-	        name: 'B&W',
+	        name: 'black & white',
 	        action: (function(_this) {
 	          return function() {
 	            var b, values, w;
@@ -70214,6 +70208,7 @@
 	                    reader = new FileReader();
 	                    reader.onload = function(e) {
 	                      return envmap.drawData(e.target.result, function() {
+	                        envmap.videoTag.src = '';
 	                        return envmap.switchToCanvasTexture();
 	                      });
 	                    };
@@ -71183,7 +71178,7 @@
 /* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var AnimationExporter, EventEmitter, MessageType, Modes, ModesDescription, ServerStatus, ServerStatusDescription, UI;
+	var AnimationExporter, EventEmitter, MODE, MessageType, ModeDescription, ServerStatus, ServerStatusDescription, UI;
 	
 	EventEmitter = __webpack_require__(7).EventEmitter;
 	
@@ -71222,22 +71217,22 @@
 	  video: 3
 	};
 	
-	Modes = {
-	  MODE_ONESHOT: 0,
-	  MODE_CONTINUAL: 1,
-	  MODE_STARTONEXPORT: 2,
-	  MODE_EXPORTSTEPS: 3
+	MODE = {
+	  ONESHOT: 0,
+	  CONTINUAL: 1,
+	  STARTONEXPORT: 2,
+	  EXPORTSTEPS: 3
 	};
 	
-	ModesDescription = {};
+	ModeDescription = {};
 	
-	ModesDescription[Modes.MODE_ONESHOT] = 'a - normal';
+	ModeDescription[MODE.ONESHOT] = 'a - normal';
 	
-	ModesDescription[Modes.MODE_CONTINUAL] = 'b - continual';
+	ModeDescription[MODE.CONTINUAL] = 'b - continual';
 	
-	ModesDescription[Modes.MODE_STARTONEXPORT] = 'c - step while export';
+	ModeDescription[MODE.STARTONEXPORT] = 'c - step while export';
 	
-	ModesDescription[Modes.MODE_EXPORTSTEPS] = 'd - export every step';
+	ModeDescription[MODE.EXPORTSTEPS] = 'd - export every step';
 	
 	AnimationExporter = (function() {
 	  function AnimationExporter(arg) {
@@ -71262,9 +71257,9 @@
 	    this.options = {
 	      duration: 60,
 	      from: 0,
-	      mode: Modes.MODE_ONESHOT
+	      mode: MODE.ONESHOT
 	    };
-	    this.MODES = Modes;
+	    this.MODES = MODE;
 	  }
 	
 	  AnimationExporter.prototype.getData = function() {
@@ -71377,19 +71372,7 @@
 	  };
 	
 	  AnimationExporter.prototype.setupInterface = function(section, root) {
-	    var btnExportFrames, btnGetVideo, exporter, modeUpdate;
-	    exporter = this;
-	    section.append([
-	      UI.button({
-	        link: true,
-	        icon: 'fa-picture-o',
-	        name: 'download image',
-	        action: function(btn, e) {
-	          this.href = exporter.getData();
-	          return this.download = exporter.getFilename(_.padLeft(Math.floor(Math.random() * 999999), 6, '0'));
-	        }
-	      })
-	    ]);
+	    var exporter, modeUpdate;
 	    modeUpdate = (function(_this) {
 	      return function(thismode) {
 	        if (_this.options.mode === thismode) {
@@ -71410,7 +71393,7 @@
 	          eventEmitter: this.events,
 	          eventName: 'ui',
 	          display: function(v) {
-	            return ModesDescription[v];
+	            return ModeDescription[v];
 	          }
 	        }), UI.btnGroup([
 	          UI.button({
@@ -71422,7 +71405,7 @@
 	            root: section,
 	            action: (function(_this) {
 	              return function() {
-	                return modeUpdate(Modes.MODE_ONESHOT);
+	                return modeUpdate(MODE.ONESHOT);
 	              };
 	            })(this),
 	            checked: true
@@ -71435,7 +71418,7 @@
 	            root: section,
 	            action: (function(_this) {
 	              return function() {
-	                return modeUpdate(Modes.MODE_CONTINUAL);
+	                return modeUpdate(MODE.CONTINUAL);
 	              };
 	            })(this)
 	          }), UI.button({
@@ -71447,7 +71430,7 @@
 	            root: section,
 	            action: (function(_this) {
 	              return function() {
-	                return modeUpdate(Modes.MODE_STARTONEXPORT);
+	                return modeUpdate(MODE.STARTONEXPORT);
 	              };
 	            })(this)
 	          }), UI.button({
@@ -71459,7 +71442,7 @@
 	            root: section,
 	            action: (function(_this) {
 	              return function() {
-	                return modeUpdate(Modes.MODE_EXPORTSTEPS);
+	                return modeUpdate(MODE.EXPORTSTEPS);
 	              };
 	            })(this)
 	          })
@@ -71501,42 +71484,51 @@
 	        })
 	      ])
 	    ]);
-	    btnExportFrames = UI.button({
-	      icon: 'fa-truck',
-	      name: 'export frames',
-	      action: (function(_this) {
-	        return function(btn) {
-	          var enable, from, to;
-	          btn.prop('disabled', true);
-	          from = _this.options.from;
-	          to = from + _this.options.duration;
-	          _this.connect(function() {
-	            return exporter.renderVideo(from, to);
-	          });
-	          enable = function() {
-	            btn.prop('disabled', false);
-	            return _this.events.removeListener('finish', enable).removeListener('close', enable);
-	          };
-	          return _this.events.once('finish', enable).once('close', enable);
-	        };
-	      })(this)
-	    });
-	    btnGetVideo = UI.button({
-	      icon: 'fa-file-video-o',
-	      name: 'get video',
-	      action: (function(_this) {
-	        return function(btn) {
-	          return _this.connect(function() {
-	            return exporter.websocket.send(JSON.stringify({
-	              a: MessageType.video
-	            }));
-	          });
-	        };
-	      })(this)
-	    });
+	    exporter = this;
 	    section.append([
 	      UI.item([
-	        UI.btnGroup([btnExportFrames, btnGetVideo]), UI.display({
+	        UI.btnGroup([
+	          UI.button({
+	            icon: 'fa-truck',
+	            name: 'export frames',
+	            action: (function(_this) {
+	              return function(btn) {
+	                var enable, from, to;
+	                btn.prop('disabled', true);
+	                from = _this.options.from;
+	                to = from + _this.options.duration;
+	                _this.connect(function() {
+	                  return exporter.renderVideo(from, to);
+	                });
+	                enable = function() {
+	                  btn.prop('disabled', false);
+	                  return _this.events.removeListener('finish', enable).removeListener('close', enable);
+	                };
+	                return _this.events.once('finish', enable).once('close', enable);
+	              };
+	            })(this)
+	          }), UI.button({
+	            icon: 'fa-file-video-o',
+	            name: 'get video',
+	            action: (function(_this) {
+	              return function(btn) {
+	                return _this.connect(function() {
+	                  return exporter.websocket.send(JSON.stringify({
+	                    a: MessageType.video
+	                  }));
+	                });
+	              };
+	            })(this)
+	          }), UI.button({
+	            link: true,
+	            icon: 'fa-camera',
+	            name: 'still image',
+	            action: function(btn, e) {
+	              this.href = exporter.getData();
+	              return this.download = exporter.getFilename(_.padLeft(Math.floor(Math.random() * 999999), 6, '0'));
+	            }
+	          })
+	        ]), UI.display({
 	          icon: 'fa-binoculars',
 	          name: 'server',
 	          object: this,

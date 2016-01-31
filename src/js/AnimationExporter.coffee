@@ -10,14 +10,14 @@ ServerStatus =
 	SERVER_READY     : 2001
 	SERVER_BUSY      : 2002
 
-ServerStatus_Desc = {}
-ServerStatus_Desc[ServerStatus.NOT_CONNECTED   ] = "not connected"
-ServerStatus_Desc[ServerStatus.CONNECTING      ] = "connecting"
-ServerStatus_Desc[ServerStatus.WEBSOCKET_OPEN  ] = "connected"
-ServerStatus_Desc[ServerStatus.WEBSOCKET_CLOSED] = "connection closed"
-ServerStatus_Desc[ServerStatus.WEBSOCKET_ERROR ] = "connection error"
-ServerStatus_Desc[ServerStatus.SERVER_READY    ] = "server ready"
-ServerStatus_Desc[ServerStatus.SERVER_BUSY     ] = "server busy..."
+ServerStatusDescription = {}
+ServerStatusDescription[ServerStatus.NOT_CONNECTED   ] = "not connected"
+ServerStatusDescription[ServerStatus.CONNECTING      ] = "connecting"
+ServerStatusDescription[ServerStatus.WEBSOCKET_OPEN  ] = "connected"
+ServerStatusDescription[ServerStatus.WEBSOCKET_CLOSED] = "connection closed"
+ServerStatusDescription[ServerStatus.WEBSOCKET_ERROR ] = "connection error"
+ServerStatusDescription[ServerStatus.SERVER_READY    ] = "server ready"
+ServerStatusDescription[ServerStatus.SERVER_BUSY     ] = "server busy..."
 
 MessageType =
 	start: 0
@@ -26,15 +26,15 @@ MessageType =
 	video: 3
 
 MODE =
-	MODE_ONESHOT       : 0 #a : normal
-	MODE_CONTINUAL     : 1
-	MODE_STARTONEXPORT : 2 #b : run while exporting
-	MODE_EXPORTSTEPS   : 3 #c : export while drawing
-MODE_Desc = {}
-MODE_Desc[MODE.MODE_ONESHOT]       = 'a - normal'
-MODE_Desc[MODE.MODE_CONTINUAL]     = 'b - continual'
-MODE_Desc[MODE.MODE_STARTONEXPORT] = 'c - step while export'
-MODE_Desc[MODE.MODE_EXPORTSTEPS]   = 'd - export every step'
+	ONESHOT       : 0 #a : normal
+	CONTINUAL     : 1
+	STARTONEXPORT : 2 #b : run while exporting
+	EXPORTSTEPS   : 3 #c : export while drawing
+ModeDescription = {}
+ModeDescription[MODE.ONESHOT]       = 'a - normal'
+ModeDescription[MODE.CONTINUAL]     = 'b - continual'
+ModeDescription[MODE.STARTONEXPORT] = 'c - step while export'
+ModeDescription[MODE.EXPORTSTEPS]   = 'd - export every step'
 
 class AnimationExporter
 	constructor: ({
@@ -69,7 +69,7 @@ class AnimationExporter
 		@options =
 			duration: 60
 			from: 0
-			mode: MODE.MODE_ONESHOT
+			mode: MODE.ONESHOT
 		@MODES = MODE
 
 	# Gets
@@ -168,7 +168,7 @@ class AnimationExporter
 					property: 'mode'
 					eventEmitter: @events
 					eventName: 'ui'
-					display: (v) -> MODE_Desc[v]
+					display: (v) -> ModeDescription[v]
 				UI.btnGroup [
 					UI.button
 						icon: false
@@ -177,7 +177,7 @@ class AnimationExporter
 						checkbox: true
 						solo: true
 						root: section
-						action: => modeUpdate MODE.MODE_ONESHOT
+						action: => modeUpdate MODE.ONESHOT
 						checked: true
 					UI.button
 						icon: false
@@ -186,7 +186,7 @@ class AnimationExporter
 						checkbox: true
 						solo: true
 						root: section
-						action: => modeUpdate MODE.MODE_CONTINUAL
+						action: => modeUpdate MODE.CONTINUAL
 					UI.button
 						icon: false
 						name: 'c'
@@ -194,7 +194,7 @@ class AnimationExporter
 						checkbox: true
 						solo: true
 						root: section
-						action: => modeUpdate MODE.MODE_STARTONEXPORT
+						action: => modeUpdate MODE.STARTONEXPORT
 					UI.button
 						icon: false
 						name: 'd'
@@ -202,7 +202,7 @@ class AnimationExporter
 						checkbox: true
 						solo: true
 						root: section
-						action: => modeUpdate MODE.MODE_EXPORTSTEPS
+						action: => modeUpdate MODE.EXPORTSTEPS
 				]
 			]
 			UI.item [
@@ -272,7 +272,7 @@ class AnimationExporter
 					eventEmitter: @events
 					eventName: 'ui'
 					display: (v) ->
-						desc = ServerStatus_Desc[v]
+						desc = ServerStatusDescription[v]
 						if desc
 							return desc
 						else
