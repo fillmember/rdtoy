@@ -26,9 +26,7 @@ envmap = new EnvironmentMap
 	video: $('#envmapVideo').get(0)
 ready.setEnvMap envmap.texture
 
-ready.events.on 'step' , ->
-	if envmap.video is true
-		envmap.updateTexture()
+ready.events.on 'step' , -> if envmap.video is true then envmap.updateTexture()
 
 # Helper Function
 setCanvasSize = (w,h) ->
@@ -62,12 +60,8 @@ animExport.events.on 'modechange' , (mode) ->
 	
 		ready.events.removeListener 'step' , exportSteps
 
-animExport.events.on 'start' , ->
-	if animExport.options.mode is animExport.MODES.MODE_STARTONEXPORT
-		ready.setRunning true
-animExport.events.on 'finish' , ->
-	if animExport.options.mode is animExport.MODES.MODE_STARTONEXPORT
-		ready.setRunning false
+animExport.events.on 'start'  , -> if animExport.options.mode is animExport.MODES.MODE_STARTONEXPORT then ready.setRunning true
+animExport.events.on 'finish' , -> if animExport.options.mode is animExport.MODES.MODE_STARTONEXPORT then ready.setRunning false
 		
 
 # DEV GUI
@@ -94,6 +88,9 @@ showDrawCanvas = ->
 	envmap.videoTag.style.display = "block"
 hideDrawCanvas()
 
+toggleCursor = (bool) ->
+	$(envmap.canvas).toggleClass 'hideCursor' , bool
+	$('.cursor').css 'opacity' , if bool then 1 else 0
 setBothBrushSize = (v) ->
 	ready.uniforms.brushSize.value = v
 	envmap.brushSize = v * 0.5
@@ -107,7 +104,7 @@ $controls.append UI.section
 			UI.btnGroup [
 				UI.button
 					icon: 'fa-flask'
-					name: 'sim map'
+					name: 'simulation'
 					solo: true
 					checkbox: true
 					checked: true
@@ -116,31 +113,42 @@ $controls.append UI.section
 					action: hideDrawCanvas
 				UI.button
 					icon: 'fa-map-o'
-					name: 'env map'
+					name: 'map'
 					solo: true
 					checkbox: true
 					group: 'drawDecision'
 					root: $controls
 					action: showDrawCanvas
 			]
+			UI.slider
+				icon: 'fa-arrows-h'
+				name: 'width'
+				object: {n: Math.log2(ready.width) - 6}
+				property: 'n'
+				min: 1
+				max: 5
+				display: (v) -> v + 'px'
+				transform: (v) -> Math.pow 2 , (6 + parseInt v)
+				onChange: (v) -> setCanvasSize v , ready.height
+			UI.slider
+				icon: 'fa-arrows-v'
+				name: 'height'
+				object: {n: Math.log2(ready.height) - 6}
+				property: 'n'
+				min: 1
+				max: 5
+				display: (v) -> v + 'px'
+				transform: (v) -> Math.pow 2 , (6 + parseInt v)
+				onChange: (v) -> setCanvasSize ready.width , v
 			UI.col [
 				UI.toggle
-					name: 'show brush'
+					name: 'show cursor'
 					checked: true
-					action: (v) ->
-						if v
-							$(envmap.canvas).addClass 'hideCursor'
-							$('.cursor').css 'opacity' , 1
-						else
-							$('.hideCursor').removeClass 'hideCursor'
-							$('.cursor').css 'opacity' , 0
+					action: toggleCursor
 				UI.toggle
-					name: 'show env map'
+					name: 'show map'
 					checked: true
-					action: (v) -> 
-						$(envmap.canvas).animate {
-							opacity: if v then 0.5 else 0
-						} , 100
+					action: (v) -> $(envmap.canvas).animate { opacity: if v then 0.5 else 0 } , 100
 			]
 		]
 		UI.item [
@@ -153,57 +161,23 @@ $controls.append UI.section
 				max: 200
 				onInput: (v) -> setBothBrushSize v
 		]
-		UI.item [
-			# UI.itemHeader 'texture size'
-			UI.slider
-				icon: 'fa-arrows-h'
-				name: 'width'
-				object: {n: Math.log2(ready.width) - 6}
-				property: 'n'
-				min: 1
-				max: 5
-				display: (v) -> v + 'px'
-				transform: (v) ->
-					v = 6 + parseInt v
-					return Math.pow 2 , v
-				onChange: (v, slider) ->
-					setCanvasSize v , ready.height
-			UI.slider
-				icon: 'fa-arrows-v'
-				name: 'height'
-				object: {n: Math.log2(ready.height) - 6}
-				property: 'n'
-				min: 1
-				max: 5
-				display: (v) -> v + 'px'
-				transform: (v) ->
-					v = 6 + parseInt v
-					return Math.pow 2 , v
-				onChange: (v, slider) ->
-					setCanvasSize ready.width , v
-		]
 	]
 
 # #######################
 # Ready Interface
 # #######################
-$sectionReady = UI.section
-	icon: 'fa-flask'
-	name: 'ready'
+$sectionReady = UI.section({ icon: 'fa-flask', name: 'ready' })
 $controls.append $sectionReady
 ready.setupInterface $sectionReady , $controls
 
 # #######################
 # Envmap Interface
 # #######################
-$sectionEnv = UI.section
-	icon: 'fa-map-o'
-	name: 'environment'
+$sectionEnv = UI.section({ icon: 'fa-map-o', name: 'environment' })
 $controls.append $sectionEnv
 envmap.setupInterface $sectionEnv , $controls
 
 # #######################
 # Render Interface
 # #######################
-
 $controls.append animExport.setupInterface UI.section({icon:'fa-motorcycle',name:'render'}) , $controls

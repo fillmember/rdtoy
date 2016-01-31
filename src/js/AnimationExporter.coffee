@@ -10,14 +10,14 @@ ServerStatus =
 	SERVER_READY     : 2001
 	SERVER_BUSY      : 2002
 
-ServerStatusDescription = {}
-ServerStatusDescription[ServerStatus.NOT_CONNECTED   ] = "not connected"
-ServerStatusDescription[ServerStatus.CONNECTING      ] = "connecting"
-ServerStatusDescription[ServerStatus.WEBSOCKET_OPEN  ] = "connected"
-ServerStatusDescription[ServerStatus.WEBSOCKET_CLOSED] = "connection closed"
-ServerStatusDescription[ServerStatus.WEBSOCKET_ERROR ] = "connection error"
-ServerStatusDescription[ServerStatus.SERVER_READY    ] = "server ready"
-ServerStatusDescription[ServerStatus.SERVER_BUSY     ] = "server busy..."
+ServerStatus_Desc = {}
+ServerStatus_Desc[ServerStatus.NOT_CONNECTED   ] = "not connected"
+ServerStatus_Desc[ServerStatus.CONNECTING      ] = "connecting"
+ServerStatus_Desc[ServerStatus.WEBSOCKET_OPEN  ] = "connected"
+ServerStatus_Desc[ServerStatus.WEBSOCKET_CLOSED] = "connection closed"
+ServerStatus_Desc[ServerStatus.WEBSOCKET_ERROR ] = "connection error"
+ServerStatus_Desc[ServerStatus.SERVER_READY    ] = "server ready"
+ServerStatus_Desc[ServerStatus.SERVER_BUSY     ] = "server busy..."
 
 MessageType =
 	start: 0
@@ -25,16 +25,16 @@ MessageType =
 	frame: 2
 	video: 3
 
-Modes =
+MODE =
 	MODE_ONESHOT       : 0 #a : normal
 	MODE_CONTINUAL     : 1
 	MODE_STARTONEXPORT : 2 #b : run while exporting
 	MODE_EXPORTSTEPS   : 3 #c : export while drawing
-ModesDescription = {}
-ModesDescription[Modes.MODE_ONESHOT]       = 'a - normal'
-ModesDescription[Modes.MODE_CONTINUAL]     = 'b - continual'
-ModesDescription[Modes.MODE_STARTONEXPORT] = 'c - step while export'
-ModesDescription[Modes.MODE_EXPORTSTEPS]   = 'd - export every step'
+MODE_Desc = {}
+MODE_Desc[MODE.MODE_ONESHOT]       = 'a - normal'
+MODE_Desc[MODE.MODE_CONTINUAL]     = 'b - continual'
+MODE_Desc[MODE.MODE_STARTONEXPORT] = 'c - step while export'
+MODE_Desc[MODE.MODE_EXPORTSTEPS]   = 'd - export every step'
 
 class AnimationExporter
 	constructor: ({
@@ -69,8 +69,8 @@ class AnimationExporter
 		@options =
 			duration: 60
 			from: 0
-			mode: Modes.MODE_ONESHOT
-		@MODES = Modes
+			mode: MODE.MODE_ONESHOT
+		@MODES = MODE
 
 	# Gets
 	getData: () -> return @canvas.toDataURL @dataType
@@ -152,18 +152,6 @@ class AnimationExporter
 			@events.emit 'ui'
 
 	setupInterface: (section, root) ->
-		## export single image
-		##
-		exporter = this
-		section.append [
-			UI.button
-				link: true
-				icon: 'fa-picture-o'
-				name: 'download image'
-				action: (btn,e) ->
-					this.href = exporter.getData()
-					this.download = exporter.getFilename _.padLeft Math.floor( Math.random() * 999999 ) , 6 , '0'
-		]
 		## mode
 		##
 		modeUpdate = (thismode) =>
@@ -180,7 +168,7 @@ class AnimationExporter
 					property: 'mode'
 					eventEmitter: @events
 					eventName: 'ui'
-					display: (v) -> ModesDescription[v]
+					display: (v) -> MODE_Desc[v]
 				UI.btnGroup [
 					UI.button
 						icon: false
@@ -189,7 +177,7 @@ class AnimationExporter
 						checkbox: true
 						solo: true
 						root: section
-						action: => modeUpdate Modes.MODE_ONESHOT
+						action: => modeUpdate MODE.MODE_ONESHOT
 						checked: true
 					UI.button
 						icon: false
@@ -198,7 +186,7 @@ class AnimationExporter
 						checkbox: true
 						solo: true
 						root: section
-						action: => modeUpdate Modes.MODE_CONTINUAL
+						action: => modeUpdate MODE.MODE_CONTINUAL
 					UI.button
 						icon: false
 						name: 'c'
@@ -206,7 +194,7 @@ class AnimationExporter
 						checkbox: true
 						solo: true
 						root: section
-						action: => modeUpdate Modes.MODE_STARTONEXPORT
+						action: => modeUpdate MODE.MODE_STARTONEXPORT
 					UI.button
 						icon: false
 						name: 'd'
@@ -214,7 +202,7 @@ class AnimationExporter
 						checkbox: true
 						solo: true
 						root: section
-						action: => modeUpdate Modes.MODE_EXPORTSTEPS
+						action: => modeUpdate MODE.MODE_EXPORTSTEPS
 				]
 			]
 			UI.item [
@@ -244,32 +232,37 @@ class AnimationExporter
 			]
 		]
 		# -----
-		btnExportFrames = UI.button
-			icon: 'fa-truck'
-			name: 'export frames'
-			action: (btn) =>
-				btn.prop 'disabled', true
-				from = @options.from
-				to = from + @options.duration
-				@connect -> exporter.renderVideo from , to
-				enable = =>
-					btn.prop 'disabled' , false
-					@events
-						.removeListener 'finish' , enable
-						.removeListener 'close' , enable
-				@events
-					.once 'finish' , enable
-					.once 'close' , enable
-		btnGetVideo = UI.button
-			icon: 'fa-file-video-o'
-			name: 'get video'
-			action: (btn) =>
-				@connect -> exporter.websocket.send JSON.stringify a: MessageType.video
+		exporter = this
 		section.append [
 			UI.item [
 				UI.btnGroup [
-					btnExportFrames
-					btnGetVideo
+					UI.button
+						icon: 'fa-truck'
+						name: 'export frames'
+						action: (btn) =>
+							btn.prop 'disabled', true
+							from = @options.from
+							to = from + @options.duration
+							@connect -> exporter.renderVideo from , to
+							enable = =>
+								btn.prop 'disabled' , false
+								@events
+									.removeListener 'finish' , enable
+									.removeListener 'close' , enable
+							@events
+								.once 'finish' , enable
+								.once 'close' , enable
+					UI.button
+						icon: 'fa-file-video-o'
+						name: 'get video'
+						action: (btn) => @connect -> exporter.websocket.send JSON.stringify a: MessageType.video
+					UI.button
+						link: true
+						icon: 'fa-camera'
+						name: 'still image'
+						action: (btn,e) ->
+							this.href = exporter.getData()
+							this.download = exporter.getFilename _.padLeft Math.floor( Math.random() * 999999 ) , 6 , '0'
 				]
 				UI.display
 					icon: 'fa-binoculars'
@@ -279,7 +272,7 @@ class AnimationExporter
 					eventEmitter: @events
 					eventName: 'ui'
 					display: (v) ->
-						desc = ServerStatusDescription[v]
+						desc = ServerStatus_Desc[v]
 						if desc
 							return desc
 						else
