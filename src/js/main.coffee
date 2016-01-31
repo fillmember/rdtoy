@@ -7,7 +7,7 @@ ReactiveDiffusionSimulator = require './ReactiveDiffusionSimulator'
 EnvironmentMap = require './EnvironmentMap'
 AnimationExporter = require './AnimationExporter'
 
-# Ready
+# Reactive Diffusion Simulator
 ready = new ReactiveDiffusionSimulator
 	canvas: $('#readyCanvas').get(0)
 
@@ -20,6 +20,7 @@ ready.mouseEventManager = MouseUtils.bind
 		ready.drawOn MouseUtils.getMouseUV evt.target , evt.clientX , evt.clientY
 	up: -> ready.drawOff()
 
+# Environment Map
 envmap = new EnvironmentMap
 	canvas: $('#drawCanvas').get(0)
 	video: $('#envmapVideo').get(0)
@@ -29,6 +30,7 @@ ready.events.on 'step' , ->
 	if envmap.video is true
 		envmap.updateTexture()
 
+# Helper Function
 setCanvasSize = (w,h) ->
 	ready.setSize w , h
 	envmap.setSize ready.width , ready.height
@@ -102,7 +104,6 @@ $controls.append UI.section
 	name: 'general'
 	child: [
 		UI.item [
-			UI.itemHeader 'Draw on...'
 			UI.btnGroup [
 				UI.button
 					icon: 'fa-flask'
