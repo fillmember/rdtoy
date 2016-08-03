@@ -1,50 +1,36 @@
-Tenplate
-=======================================
+Reaction Diffusion Playground
+=================
 
-I want a simple foundation for my experiments. I want it to be minimal and welcome all kinds of syntax, pre-processors, whatever you want to use. 
+(Visit <https://fillmember.github.io/rdtoy/> to play online. )
 
-Tools Used:
+The goal of this project is to create an environment that you can play with reaction diffusion, and make animation out of it. 
 
-- Gulp
-- BrowserSync
-- Webpack
+## Requirement
 
-And these are ready to use!
+- Latest Google Chrome
+- WebM
+- WebGL
 
-- Stylus
-- Jade
-- Coffeescript
-- Babel ES2015
+## Notable Features
 
-## Features & Structures
+- Environment map can be customed. You can even use a video for it. 
+- Animation recorder. Encode and export WebM in your browser. 
+- Fun random color scheme generator
 
-one liner -- Takes things in src and put them into dist. 
+## Credit
 
-### Folders:
+Heavily inspired by [Javascript Experiments](https://github.com/pmneila/jsexp) of @pmneila. The gradient UI, preset of kill/feed parameters are copy/pasted from his web toy as well. 
 
-- assets : for images and other static content. Will be copied to `dist/` (you can extend this process in `gulp/build.coffee`)
-- jade   : each `.jade` file will become a html file in `dist/`
-- stylus : each `.styl` file will become a css file in `dist/css/`
-- css    : each `.css` file in here will be copied to `dist/css/` for `@import` use
-- js     : webpack is in charge here. entry point is `main.js`
+Three.js for WebGL programming. Icons from FontAwesome. 
 
-### Code:
+## Guide
 
-Webpack inject a boolean variable `__DEV__` into files. The value will be `true` in watch mode or you specify `--dev` flag in build mode. You can modify this logic in `webpack.config.js`, in the part of plugins. `--nodev` can be use to do the otherwise. 
+Other documentation and guides to make environment map are coming soon. 
 
-### Gulp:
+## Development
 
-`gulp` for help, and start watch.
-`gulp watch` for watch in `dist/`  
-`gulp build` for build to `dist/`  
-`gulp clean` for clean `dist/`, now it only delete documents
+You will need Node.js, and Gulp. 
 
-## To Expand
-
-You can put in more processes in build-assets, build-css tasks (in `gulp/build.coffee`). Remember to modify watch task (`gulp/watch.coffee`) accordingly. 
-
-To configure webpack, check webpack.config.js for basic configurations such as entry point and output. in `gulp/build.coffee` and `gulp/watch.coffee`, there's also some modification to the config file before it is passed to start webpack. 
-
-## Footer
-
-Feel free to open issues, and/or make pull requests. I want to make this more solid. There definitely can be more improvements on the browserSync-webpack-watch part. 
+1. clone the repo
+2. `npm install`
+3. `gulp`
