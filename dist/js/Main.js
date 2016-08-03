@@ -44,7 +44,7 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $, $controls, $sectionEnv, $sectionReady, AnimationExporter, EnvironmentMap, MouseUtils, ReactiveDiffusionSimulator, THREE, UI, _, animExport, defaultBrushSize, envmap, exportSteps, hideDrawCanvas, ready, setBothBrushSize, setCanvasSize, showDrawCanvas, toggleCursor;
+	var $, $controls, $sectionEnv, $sectionReady, AnimationExporter, EnvironmentMap, EventEmitter, MouseUtils, ReactiveDiffusionSimulator, THREE, UI, _, capture, defaultBrushSize, envmap, hideDrawCanvas, ready, setBothBrushSize, setCanvasSize, showDrawCanvas, toggleCursor;
 	
 	THREE = __webpack_require__(1);
 	
@@ -100,46 +100,6 @@
 	};
 	
 	setCanvasSize(512, 512);
-	
-	animExport = new AnimationExporter({
-	  canvas: ready.renderer.domElement
-	});
-	
-	exportSteps = function() {
-	  return animExport.connect(function() {
-	    var from;
-	    from = animExport.options.from;
-	    return animExport.renderVideo(from, from + 1);
-	  });
-	};
-	
-	animExport.events.on('modechange', function(mode) {
-	  if (mode === animExport.MODES.MODE_STARTONEXPORT) {
-	    if (ready.running) {
-	      ready.setRunning(false);
-	    }
-	  }
-	  if (mode === animExport.MODES.MODE_EXPORTSTEPS) {
-	    if (ready.running) {
-	      ready.setRunning(false);
-	    }
-	    return ready.events.on('step', exportSteps);
-	  } else {
-	    return ready.events.removeListener('step', exportSteps);
-	  }
-	});
-	
-	animExport.events.on('start', function() {
-	  if (animExport.options.mode === animExport.MODES.MODE_STARTONEXPORT) {
-	    return ready.setRunning(true);
-	  }
-	});
-	
-	animExport.events.on('finish', function() {
-	  if (animExport.options.mode === animExport.MODES.MODE_STARTONEXPORT) {
-	    return ready.setRunning(false);
-	  }
-	});
 	
 	UI = __webpack_require__(19);
 	
@@ -280,10 +240,119 @@
 	
 	envmap.setupInterface($sectionEnv, $controls);
 	
-	$controls.append(animExport.setupInterface(UI.section({
-	  icon: 'fa-motorcycle',
-	  name: 'render'
-	}), $controls));
+	__webpack_require__(29);
+	
+	__webpack_require__(30);
+	
+	EventEmitter = __webpack_require__(7).EventEmitter;
+	
+	capture = {
+	  data: [],
+	  events: new EventEmitter(),
+	  status: {
+	    capturing: false
+	  },
+	  settings: {
+	    captureWhileDrawing: false
+	  },
+	  add: function() {
+	    capture.data.push(ready.renderer.domElement.toDataURL('image/webp'));
+	    return capture.UIActions.updateUI();
+	  },
+	  UI: {},
+	  UIActions: {
+	    updateUI: function() {
+	      return capture.events.emit('ui');
+	    },
+	    disable: function(dom) {
+	      return capture.UI[dom].prop('disabled', true);
+	    },
+	    enable: function(dom) {
+	      return capture.UI[dom].prop('disabled', false);
+	    },
+	    toggleRecordState: function(dom, bool) {
+	      return capture.UI[dom].toggleClass('pulsing red', bool);
+	    }
+	  }
+	};
+	
+	ready.events.on('run', function() {
+	  if (capture.status.capturing && ready.running) {
+	    return capture.add();
+	  }
+	});
+	
+	ready.events.on('draw', function() {
+	  if (!capture.status.capturing && capture.settings.captureWhileDrawing) {
+	    return capture.add();
+	  }
+	});
+	
+	$controls.append(UI.section({
+	  icon: 'fa-truck',
+	  name: 'render',
+	  child: [
+	    UI.item([
+	      capture.UI.bufferDisplay = UI.display({
+	        icon: 'fa-cloud',
+	        name: 'buffer',
+	        object: capture.data,
+	        property: 'length',
+	        eventEmitter: capture.events,
+	        eventName: 'ui',
+	        display: function(v) {
+	          return v + ' frame' + (v > 1 ? 's' : '') + ' in buffer';
+	        }
+	      }), UI.btnGroup([
+	        capture.UI.captureButton = UI.button({
+	          name: 'capture',
+	          checkbox: true,
+	          action: function(v) {
+	            capture.status.capturing = v;
+	            if (capture.status.capturing) {
+	              capture.UIActions.toggleRecordState('captureButton', true);
+	              capture.UIActions.toggleRecordState('bufferDisplay', true);
+	              return ready.setRunning(true);
+	            } else {
+	              capture.UIActions.toggleRecordState('captureButton', false);
+	              capture.UIActions.toggleRecordState('bufferDisplay', false);
+	              ready.setRunning(false);
+	              return capture.UIActions.updateUI();
+	            }
+	          }
+	        }), capture.UI.getWebMButton = UI.button({
+	          name: 'save webm',
+	          action: function() {
+	            var blob, url;
+	            blob = Whammy.fromImageArray(capture.data, 30, false);
+	            url = URL.createObjectURL(blob);
+	            return window.open(url);
+	          }
+	        }), capture.UI.clearBufferButton = UI.button({
+	          name: 'clear buffer',
+	          action: function() {
+	            capture.data.length = 0;
+	            return capture.UIActions.updateUI();
+	          }
+	        })
+	      ])
+	    ]), UI.item([
+	      UI.itemHeader([UI.icon('fa-link'), UI.spanText('auto capture when...')]), UI.btnGroup([
+	        UI.button({
+	          icon: 'fa-paint-brush',
+	          name: 'drawing',
+	          checkbox: true,
+	          checked: capture.settings.captureWhileDrawing,
+	          group: 'captureConditionGroup',
+	          root: $controls,
+	          action: function(v) {
+	            return capture.settings.captureWhileDrawing = v;
+	          }
+	        })
+	      ])
+	    ])
+	  ]
+	}));
 
 
 /***/ },
@@ -58340,18 +58409,16 @@
 	  };
 	
 	  ReactiveDiffusionSimulator.prototype.drawOn = function(x, y) {
-	    var n;
 	    if (arguments.length === 2) {
 	      this.uniforms.brush.value.set(x, y);
 	    } else {
 	      this.uniforms.brush.value.copy(x);
 	    }
 	    if (!this.running) {
-	      n = this.subStepCount;
-	      this.subStepCount = 1;
-	      this.step();
-	      return this.subStepCount = n;
+	      this.mesh.material = this.mat;
+	      this.subStep(1);
 	    }
+	    return this.events.emit('draw');
 	  };
 	
 	  ReactiveDiffusionSimulator.prototype.drawOff = function() {
@@ -69748,7 +69815,7 @@
 	};
 	
 	lib.display = function(arg) {
-	  var display, eventEmitter, eventName, eventNames, handler, icon, label, name, object, property, ref, ref1, ref2, span, update;
+	  var col, display, eventEmitter, eventName, eventNames, handler, icon, label, name, object, property, ref, ref1, ref2, span, update;
 	  name = (ref = arg.name) != null ? ref : 'display', icon = (ref1 = arg.icon) != null ? ref1 : 'fa-smile-o', object = arg.object, property = arg.property, eventEmitter = arg.eventEmitter, eventName = arg.eventName, eventNames = arg.eventNames, display = (ref2 = arg.display) != null ? ref2 : function(v) {
 	    return v;
 	  };
@@ -69783,7 +69850,11 @@
 	    }
 	  }
 	  update();
-	  return this.col('displayContainer', [label, span]);
+	  col = this.col('displayContainer', [label, span]);
+	  col.data({
+	    update: update
+	  });
+	  return col;
 	};
 	
 	lib.button = function(arg) {
@@ -69818,7 +69889,7 @@
 	      if (data.checked === false) {
 	        return;
 	      }
-	      return others = root.find("button").not(this).filter(function() {
+	      return others = root.find("button, .button").not(this).filter(function() {
 	        var activated, mygroup, otherData;
 	        otherData = $(this).data('ui');
 	        if (otherData == null) {
@@ -69860,7 +69931,7 @@
 	  if (checked) {
 	    input.trigger('change');
 	  }
-	  return this.col('toggleContainer', [this.itemLabel([(icon ? this.icon(icon) : void 0), name]), input, label]);
+	  return this.col('toggleContainer', [this.itemLabel([(icon != null ? this.icon(icon) : void 0), name]), input, label]);
 	};
 	
 	lib.option = function(value, name) {
@@ -70018,7 +70089,7 @@
 /* 23 */
 /***/ function(module, exports) {
 
-	module.exports = "varying vec2 vUv;\nuniform vec2 step;\nuniform sampler2D tSource;\nuniform sampler2D tEnv;\nuniform float delta;\nuniform float feedFactor;\nuniform float killFactor;\nuniform vec2 brush;\nuniform vec2 brushColor;\nuniform float brushSize;\n\nvoid main() {\n\n    vec3 vEnv = texture2D( tEnv, vUv ).rgb;\n    float feed = vEnv.r * feedFactor;\n    float kill = vEnv.g * killFactor;\n    float sx = step.x * vEnv.b * 10.0;\n    float sy = step.y * vEnv.b * 10.0;\n\n    vec2 uv  = texture2D( tSource, vUv ).rg;\n    vec2 lapl =\n         + 0.05 * (\n            texture2D( tSource, vUv + vec2( -sx, -sy ) ).rg +\n            texture2D( tSource, vUv + vec2(  sx, -sy ) ).rg +\n            texture2D( tSource, vUv + vec2( -sx,  sy ) ).rg +\n            texture2D( tSource, vUv + vec2(  sx,  sy ) ).rg\n        )\n         + 0.20 * (\n            texture2D( tSource, vUv + vec2( -sx, 0.0 ) ).rg +\n            texture2D( tSource, vUv + vec2(  sx, 0.0 ) ).rg +\n            texture2D( tSource, vUv + vec2( 0.0, -sy ) ).rg +\n            texture2D( tSource, vUv + vec2( 0.0,  sy ) ).rg\n        )\n         - uv;\n    float reaction = uv.r * uv.g * uv.g;\n    float du = 1.0 * lapl.r - reaction +  feed * (1.0 - uv.r);\n    float dv = 0.5 * lapl.g + reaction - (feed + kill) * uv.g;\n    vec2 dst = uv + delta * vec2(du, dv);\n\n    if (brush.x > 0.0) {\n        vec2 diff = (vUv - brush) / step;\n        float dist = dot(diff, diff);\n        dst = dist < brushSize ? brushColor : dst.rg;\n    }\n    \n    gl_FragColor = vec4(dst, 0.0, 1.0);\n\n}"
+	module.exports = "varying vec2 vUv;\nuniform vec2 step;\nuniform sampler2D tSource;\nuniform sampler2D tEnv;\nuniform float delta;\nuniform float feedFactor;\nuniform float killFactor;\nuniform vec2 brush;\nuniform vec2 brushColor;\nuniform float brushSize;\n\nvoid main() {\n\n    vec3 vEnv = texture2D( tEnv, vUv ).rgb;\n    float feed = vEnv.r * feedFactor;\n    float kill = vEnv.g * killFactor;\n    float sx = step.x * vEnv.b * 10.0;\n    float sy = step.y * vEnv.b * 10.0;\n\n    vec2 uv  = texture2D( tSource, vUv ).rg;\n    vec2 lapl =\n         // + 0.05 * (\n         //    texture2D( tSource, vUv + vec2( -sx, -sy ) ).rg +\n         //    texture2D( tSource, vUv + vec2(  sx, -sy ) ).rg +\n         //    texture2D( tSource, vUv + vec2( -sx,  sy ) ).rg +\n         //    texture2D( tSource, vUv + vec2(  sx,  sy ) ).rg\n         // )\n         // + 0.20 * (\n         + 0.25 * (\n            texture2D( tSource, vUv + vec2( -sx, 0.0 ) ).rg +\n            texture2D( tSource, vUv + vec2(  sx, 0.0 ) ).rg +\n            texture2D( tSource, vUv + vec2( 0.0, -sy ) ).rg +\n            texture2D( tSource, vUv + vec2( 0.0,  sy ) ).rg\n         )\n         - uv;\n    float reaction = uv.r * uv.g * uv.g;\n    float du = 1.0 * lapl.r - reaction +  feed * (1.0 - uv.r);\n    float dv = 0.5 * lapl.g + reaction - (feed + kill) * uv.g;\n    vec2 dst = uv + delta * vec2(du, dv);\n\n    if (brush.x > 0.0) {\n        vec2 diff = (vUv - brush) / step;\n        float dist = dot(diff, diff);\n        dst = dist < brushSize ? brushColor : dst.rg;\n    }\n    \n    gl_FragColor = vec4(dst, 0.0, 1.0);\n\n}"
 
 /***/ },
 /* 24 */
@@ -71561,6 +71632,1099 @@
 	
 	module.exports = AnimationExporter;
 
+
+/***/ },
+/* 29 */
+/***/ function(module, exports) {
+
+	/*
+		var vid = new Whammy.Video();
+		vid.add(canvas or data url)
+		vid.compile()
+	*/
+	module.exports = window.Whammy = (function(){
+		// in this case, frames has a very specific meaning, which will be
+		// detailed once i finish writing the code
+	
+		function toWebM(frames, outputAsArray){
+			var info = checkFrames(frames);
+	
+			//max duration by cluster in milliseconds
+			var CLUSTER_MAX_DURATION = 30000;
+	
+			var EBML = [
+				{
+					"id": 0x1a45dfa3, // EBML
+					"data": [
+						{
+							"data": 1,
+							"id": 0x4286 // EBMLVersion
+						},
+						{
+							"data": 1,
+							"id": 0x42f7 // EBMLReadVersion
+						},
+						{
+							"data": 4,
+							"id": 0x42f2 // EBMLMaxIDLength
+						},
+						{
+							"data": 8,
+							"id": 0x42f3 // EBMLMaxSizeLength
+						},
+						{
+							"data": "webm",
+							"id": 0x4282 // DocType
+						},
+						{
+							"data": 2,
+							"id": 0x4287 // DocTypeVersion
+						},
+						{
+							"data": 2,
+							"id": 0x4285 // DocTypeReadVersion
+						}
+					]
+				},
+				{
+					"id": 0x18538067, // Segment
+					"data": [
+						{
+							"id": 0x1549a966, // Info
+							"data": [
+								{
+									"data": 1e6, //do things in millisecs (num of nanosecs for duration scale)
+									"id": 0x2ad7b1 // TimecodeScale
+								},
+								{
+									"data": "whammy",
+									"id": 0x4d80 // MuxingApp
+								},
+								{
+									"data": "whammy",
+									"id": 0x5741 // WritingApp
+								},
+								{
+									"data": doubleToString(info.duration),
+									"id": 0x4489 // Duration
+								}
+							]
+						},
+						{
+							"id": 0x1654ae6b, // Tracks
+							"data": [
+								{
+									"id": 0xae, // TrackEntry
+									"data": [
+										{
+											"data": 1,
+											"id": 0xd7 // TrackNumber
+										},
+										{
+											"data": 1,
+											"id": 0x73c5 // TrackUID
+										},
+										{
+											"data": 0,
+											"id": 0x9c // FlagLacing
+										},
+										{
+											"data": "und",
+											"id": 0x22b59c // Language
+										},
+										{
+											"data": "V_VP8",
+											"id": 0x86 // CodecID
+										},
+										{
+											"data": "VP8",
+											"id": 0x258688 // CodecName
+										},
+										{
+											"data": 1,
+											"id": 0x83 // TrackType
+										},
+										{
+											"id": 0xe0,  // Video
+											"data": [
+												{
+													"data": info.width,
+													"id": 0xb0 // PixelWidth
+												},
+												{
+													"data": info.height,
+													"id": 0xba // PixelHeight
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"id": 0x1c53bb6b, // Cues
+							"data": [
+								//cue insertion point
+							]
+						}
+	
+						//cluster insertion point
+					]
+				}
+			 ];
+	
+	
+			var segment = EBML[1];
+			var cues = segment.data[2];
+	
+			//Generate clusters (max duration)
+			var frameNumber = 0;
+			var clusterTimecode = 0;
+			while(frameNumber < frames.length){
+	
+				var cuePoint = {
+						"id": 0xbb, // CuePoint
+						"data": [
+							{
+								"data": Math.round(clusterTimecode),
+								"id": 0xb3 // CueTime
+							},
+							{
+								"id": 0xb7, // CueTrackPositions
+								"data": [
+									{
+										"data": 1,
+										"id": 0xf7 // CueTrack
+									},
+									{
+										"data": 0, // to be filled in when we know it
+										"size": 8,
+										"id": 0xf1 // CueClusterPosition
+									}
+								]
+							}
+						]
+					};
+	
+				cues.data.push(cuePoint);
+	
+				var clusterFrames = [];
+				var clusterDuration = 0;
+				do {
+					clusterFrames.push(frames[frameNumber]);
+					clusterDuration += frames[frameNumber].duration;
+					frameNumber++;
+				}while(frameNumber < frames.length && clusterDuration < CLUSTER_MAX_DURATION);
+	
+				var clusterCounter = 0;
+				var cluster = {
+						"id": 0x1f43b675, // Cluster
+						"data": [
+							{
+								"data": Math.round(clusterTimecode),
+								"id": 0xe7 // Timecode
+							}
+						].concat(clusterFrames.map(function(webp){
+							var block = makeSimpleBlock({
+								discardable: 0,
+								frame: webp.data.slice(4),
+								invisible: 0,
+								keyframe: 1,
+								lacing: 0,
+								trackNum: 1,
+								timecode: Math.round(clusterCounter)
+							});
+							clusterCounter += webp.duration;
+							return {
+								data: block,
+								id: 0xa3
+							};
+						}))
+					}
+	
+				//Add cluster to segment
+				segment.data.push(cluster);
+				clusterTimecode += clusterDuration;
+			}
+	
+			//First pass to compute cluster positions
+			var position = 0;
+			for(var i = 0; i < segment.data.length; i++){
+				if (i >= 3) {
+					cues.data[i-3].data[1].data[1].data = position;
+				}
+				var data = generateEBML([segment.data[i]], outputAsArray);
+				position += data.size || data.byteLength || data.length;
+				if (i != 2) { // not cues
+					//Save results to avoid having to encode everything twice
+					segment.data[i] = data;
+				}
+			}
+	
+			return generateEBML(EBML, outputAsArray)
+		}
+	
+		// sums the lengths of all the frames and gets the duration, woo
+	
+		function checkFrames(frames){
+			var width = frames[0].width,
+				height = frames[0].height,
+				duration = frames[0].duration;
+			for(var i = 1; i < frames.length; i++){
+				if(frames[i].width != width) throw "Frame " + (i + 1) + " has a different width";
+				if(frames[i].height != height) throw "Frame " + (i + 1) + " has a different height";
+				if(frames[i].duration < 0 || frames[i].duration > 0x7fff) throw "Frame " + (i + 1) + " has a weird duration (must be between 0 and 32767)";
+				duration += frames[i].duration;
+			}
+			return {
+				duration: duration,
+				width: width,
+				height: height
+			};
+		}
+	
+	
+		function numToBuffer(num){
+			var parts = [];
+			while(num > 0){
+				parts.push(num & 0xff)
+				num = num >> 8
+			}
+			return new Uint8Array(parts.reverse());
+		}
+	
+		function numToFixedBuffer(num, size){
+			var parts = new Uint8Array(size);
+			for(var i = size - 1; i >= 0; i--){
+				parts[i] = num & 0xff;
+				num = num >> 8;
+			}
+			return parts;
+		}
+	
+		function strToBuffer(str){
+			// return new Blob([str]);
+	
+			var arr = new Uint8Array(str.length);
+			for(var i = 0; i < str.length; i++){
+				arr[i] = str.charCodeAt(i)
+			}
+			return arr;
+			// this is slower
+			// return new Uint8Array(str.split('').map(function(e){
+			// 	return e.charCodeAt(0)
+			// }))
+		}
+	
+	
+		//sorry this is ugly, and sort of hard to understand exactly why this was done
+		// at all really, but the reason is that there's some code below that i dont really
+		// feel like understanding, and this is easier than using my brain.
+	
+		function bitsToBuffer(bits){
+			var data = [];
+			var pad = (bits.length % 8) ? (new Array(1 + 8 - (bits.length % 8))).join('0') : '';
+			bits = pad + bits;
+			for(var i = 0; i < bits.length; i+= 8){
+				data.push(parseInt(bits.substr(i,8),2))
+			}
+			return new Uint8Array(data);
+		}
+	
+		function generateEBML(json, outputAsArray){
+			var ebml = [];
+			for(var i = 0; i < json.length; i++){
+				if (!('id' in json[i])){
+					//already encoded blob or byteArray
+					ebml.push(json[i]);
+					continue;
+				}
+	
+				var data = json[i].data;
+				if(typeof data == 'object') data = generateEBML(data, outputAsArray);
+				if(typeof data == 'number') data = ('size' in json[i]) ? numToFixedBuffer(data, json[i].size) : bitsToBuffer(data.toString(2));
+				if(typeof data == 'string') data = strToBuffer(data);
+	
+				if(data.length){
+					var z = z;
+				}
+	
+				var len = data.size || data.byteLength || data.length;
+				var zeroes = Math.ceil(Math.ceil(Math.log(len)/Math.log(2))/8);
+				var size_str = len.toString(2);
+				var padded = (new Array((zeroes * 7 + 7 + 1) - size_str.length)).join('0') + size_str;
+				var size = (new Array(zeroes)).join('0') + '1' + padded;
+	
+				//i actually dont quite understand what went on up there, so I'm not really
+				//going to fix this, i'm probably just going to write some hacky thing which
+				//converts that string into a buffer-esque thing
+	
+				ebml.push(numToBuffer(json[i].id));
+				ebml.push(bitsToBuffer(size));
+				ebml.push(data)
+	
+	
+			}
+	
+			//output as blob or byteArray
+			if(outputAsArray){
+				//convert ebml to an array
+				var buffer = toFlatArray(ebml)
+				return new Uint8Array(buffer);
+			}else{
+				return new Blob(ebml, {type: "video/webm"});
+			}
+		}
+	
+		function toFlatArray(arr, outBuffer){
+			if(outBuffer == null){
+				outBuffer = [];
+			}
+			for(var i = 0; i < arr.length; i++){
+				if(typeof arr[i] == 'object'){
+					//an array
+					toFlatArray(arr[i], outBuffer)
+				}else{
+					//a simple element
+					outBuffer.push(arr[i]);
+				}
+			}
+			return outBuffer;
+		}
+	
+		//OKAY, so the following two functions are the string-based old stuff, the reason they're
+		//still sort of in here, is that they're actually faster than the new blob stuff because
+		//getAsFile isn't widely implemented, or at least, it doesn't work in chrome, which is the
+		// only browser which supports get as webp
+	
+		//Converting between a string of 0010101001's and binary back and forth is probably inefficient
+		//TODO: get rid of this function
+		function toBinStr_old(bits){
+			var data = '';
+			var pad = (bits.length % 8) ? (new Array(1 + 8 - (bits.length % 8))).join('0') : '';
+			bits = pad + bits;
+			for(var i = 0; i < bits.length; i+= 8){
+				data += String.fromCharCode(parseInt(bits.substr(i,8),2))
+			}
+			return data;
+		}
+	
+		function generateEBML_old(json){
+			var ebml = '';
+			for(var i = 0; i < json.length; i++){
+				var data = json[i].data;
+				if(typeof data == 'object') data = generateEBML_old(data);
+				if(typeof data == 'number') data = toBinStr_old(data.toString(2));
+	
+				var len = data.length;
+				var zeroes = Math.ceil(Math.ceil(Math.log(len)/Math.log(2))/8);
+				var size_str = len.toString(2);
+				var padded = (new Array((zeroes * 7 + 7 + 1) - size_str.length)).join('0') + size_str;
+				var size = (new Array(zeroes)).join('0') + '1' + padded;
+	
+				ebml += toBinStr_old(json[i].id.toString(2)) + toBinStr_old(size) + data;
+	
+			}
+			return ebml;
+		}
+	
+		//woot, a function that's actually written for this project!
+		//this parses some json markup and makes it into that binary magic
+		//which can then get shoved into the matroska comtainer (peaceably)
+	
+		function makeSimpleBlock(data){
+			var flags = 0;
+			if (data.keyframe) flags |= 128;
+			if (data.invisible) flags |= 8;
+			if (data.lacing) flags |= (data.lacing << 1);
+			if (data.discardable) flags |= 1;
+			if (data.trackNum > 127) {
+				throw "TrackNumber > 127 not supported";
+			}
+			var out = [data.trackNum | 0x80, data.timecode >> 8, data.timecode & 0xff, flags].map(function(e){
+				return String.fromCharCode(e)
+			}).join('') + data.frame;
+	
+			return out;
+		}
+	
+		// here's something else taken verbatim from weppy, awesome rite?
+	
+		function parseWebP(riff){
+			var VP8 = riff.RIFF[0].WEBP[0];
+	
+			var frame_start = VP8.indexOf('\x9d\x01\x2a'); //A VP8 keyframe starts with the 0x9d012a header
+			for(var i = 0, c = []; i < 4; i++) c[i] = VP8.charCodeAt(frame_start + 3 + i);
+	
+			var width, horizontal_scale, height, vertical_scale, tmp;
+	
+			//the code below is literally copied verbatim from the bitstream spec
+			tmp = (c[1] << 8) | c[0];
+			width = tmp & 0x3FFF;
+			horizontal_scale = tmp >> 14;
+			tmp = (c[3] << 8) | c[2];
+			height = tmp & 0x3FFF;
+			vertical_scale = tmp >> 14;
+			return {
+				width: width,
+				height: height,
+				data: VP8,
+				riff: riff
+			}
+		}
+	
+		// i think i'm going off on a riff by pretending this is some known
+		// idiom which i'm making a casual and brilliant pun about, but since
+		// i can't find anything on google which conforms to this idiomatic
+		// usage, I'm assuming this is just a consequence of some psychotic
+		// break which makes me make up puns. well, enough riff-raff (aha a
+		// rescue of sorts), this function was ripped wholesale from weppy
+	
+		function parseRIFF(string){
+			var offset = 0;
+			var chunks = {};
+	
+			while (offset < string.length) {
+				var id = string.substr(offset, 4);
+				chunks[id] = chunks[id] || [];
+				if (id == 'RIFF' || id == 'LIST') {
+					var len = parseInt(string.substr(offset + 4, 4).split('').map(function(i){
+						var unpadded = i.charCodeAt(0).toString(2);
+						return (new Array(8 - unpadded.length + 1)).join('0') + unpadded
+					}).join(''),2);
+					var data = string.substr(offset + 4 + 4, len);
+					offset += 4 + 4 + len;
+					chunks[id].push(parseRIFF(data));
+				} else if (id == 'WEBP') {
+					// Use (offset + 8) to skip past "VP8 "/"VP8L"/"VP8X" field after "WEBP"
+					chunks[id].push(string.substr(offset + 8));
+					offset = string.length;
+				} else {
+					// Unknown chunk type; push entire payload
+					chunks[id].push(string.substr(offset + 4));
+					offset = string.length;
+				}
+			}
+			return chunks;
+		}
+	
+		// here's a little utility function that acts as a utility for other functions
+		// basically, the only purpose is for encoding "Duration", which is encoded as
+		// a double (considerably more difficult to encode than an integer)
+		function doubleToString(num){
+			return [].slice.call(
+				new Uint8Array(
+					(
+						new Float64Array([num]) //create a float64 array
+					).buffer) //extract the array buffer
+				, 0) // convert the Uint8Array into a regular array
+				.map(function(e){ //since it's a regular array, we can now use map
+					return String.fromCharCode(e) // encode all the bytes individually
+				})
+				.reverse() //correct the byte endianness (assume it's little endian for now)
+				.join('') // join the bytes in holy matrimony as a string
+		}
+	
+		function WhammyVideo(speed, quality){ // a more abstract-ish API
+			this.frames = [];
+			this.duration = 1000 / speed;
+			this.quality = quality || 0.8;
+		}
+	
+		WhammyVideo.prototype.add = function(frame, duration){
+			if(typeof duration != 'undefined' && this.duration) throw "you can't pass a duration if the fps is set";
+			if(typeof duration == 'undefined' && !this.duration) throw "if you don't have the fps set, you need to have durations here.";
+			if(frame.canvas){ //CanvasRenderingContext2D
+				frame = frame.canvas;
+			}
+			if(frame.toDataURL){
+				// frame = frame.toDataURL('image/webp', this.quality);
+				// quickly store image data so we don't block cpu. encode in compile method.
+				frame = frame.getContext('2d').getImageData(0, 0, frame.width, frame.height);
+			}else if(typeof frame != "string"){
+				throw "frame must be a a HTMLCanvasElement, a CanvasRenderingContext2D or a DataURI formatted string"
+			}
+			if (typeof frame === "string" && !(/^data:image\/webp;base64,/ig).test(frame)) {
+				throw "Input must be formatted properly as a base64 encoded DataURI of type image/webp";
+			}
+			this.frames.push({
+				image: frame,
+				duration: duration || this.duration
+			});
+		};
+	
+		// deferred webp encoding. Draws image data to canvas, then encodes as dataUrl
+		WhammyVideo.prototype.encodeFrames = function(callback){
+	
+			if(this.frames[0].image instanceof ImageData){
+	
+				var frames = this.frames;
+				var tmpCanvas = document.createElement('canvas');
+				var tmpContext = tmpCanvas.getContext('2d');
+				tmpCanvas.width = this.frames[0].image.width;
+				tmpCanvas.height = this.frames[0].image.height;
+	
+				var encodeFrame = function(index){
+					console.log('encodeFrame', index);
+					var frame = frames[index];
+					tmpContext.putImageData(frame.image, 0, 0);
+					frame.image = tmpCanvas.toDataURL('image/webp', this.quality);
+					if(index < frames.length-1){
+						setTimeout(function(){ encodeFrame(index + 1); }, 1);
+					}else{
+						callback();
+					}
+				}.bind(this);
+	
+				encodeFrame(0);
+			}else{
+				callback();
+			}
+		};
+	
+		WhammyVideo.prototype.compile = function(outputAsArray, callback){
+	
+			this.encodeFrames(function(){
+	
+				var webm = new toWebM(this.frames.map(function(frame){
+					var webp = parseWebP(parseRIFF(atob(frame.image.slice(23))));
+					webp.duration = frame.duration;
+					return webp;
+				}), outputAsArray);
+				callback(webm);
+				
+			}.bind(this));
+		};
+	
+		return {
+			Video: WhammyVideo,
+			fromImageArray: function(images, fps, outputAsArray){
+				return toWebM(images.map(function(image){
+					var webp = parseWebP(parseRIFF(atob(image.slice(23))))
+					webp.duration = 1000 / fps;
+					return webp;
+				}), outputAsArray)
+			},
+			toWebM: toWebM
+			// expose methods of madness
+		}
+	})()
+
+
+/***/ },
+/* 30 */
+/***/ function(module, exports) {
+
+	( function() { 
+	
+	"use strict";
+	
+	var g_startTime = window.Date.now();
+	
+	function CCFrameEncoder() {
+	
+		var _handlers = {};
+	
+		this.on = function(event, handler) {
+	
+			_handlers[event] = handler;
+	
+		};
+	
+		this.emit = function(event) {
+	
+			var handler = _handlers[event];
+			if (handler) {
+	
+				handler.apply(null, Array.prototype.slice.call(arguments, 1));
+	
+			}
+	
+		};
+	
+	}
+	
+	CCFrameEncoder.start = function(){};
+	CCFrameEncoder.stop = function(){};
+	CCFrameEncoder.add = function(){};
+	CCFrameEncoder.save = function(){};
+	CCFrameEncoder.safeToProceed = function(){ return true; };
+	
+	function CCWebMEncoder( settings ) {
+	
+		CCFrameEncoder.call( this );
+	
+		settings.quality = ( settings.quality / 100 ) || .8;
+		
+		this.settings = settings;
+		this.encoder = new Whammy.Video( settings.framerate, settings.quality );
+	
+	}
+	
+	CCWebMEncoder.prototype = Object.create( CCFrameEncoder );
+	
+	CCWebMEncoder.prototype.add = function( canvas ) {
+	
+		this.encoder.add( canvas );
+	
+	}
+	
+	CCWebMEncoder.prototype.save = function( callback ) {
+	
+		var output = this.encoder.compile(); 
+		var blob = new Blob( [ output ], { type: "octet/stream" } );
+		var url = window.URL.createObjectURL( blob );
+		callback( url );
+	
+	}
+	
+	function CCFFMpegServerEncoder( settings ) {
+	
+		CCFrameEncoder.call( this );
+	
+		settings.quality = ( settings.quality / 100 ) || .8;
+	
+		this.settings = settings;
+		this.encoder = new FFMpegServer.Video( settings );
+	    this.encoder.on( 'process', function() {
+	        this.emit( 'process' )
+	    }.bind( this ) );
+	    this.encoder.on('finished', function( url, size ) {
+	        var cb = this.callback;
+	        if ( cb ) {
+	            this.callback = undefined;
+	            cb( url, size );
+	        }
+	    }.bind( this ) );
+	    this.encoder.on( 'progress', function( progress ) {
+	        if ( this.settings.onProgress ) {
+	            this.settings.onProgress( progress )
+	        }
+	    }.bind( this ) );
+	    this.encoder.on( 'error', function( data ) {
+	        alert(JSON.stringify(data, null, 2));
+	    }.bind( this ) );
+	
+	}
+	
+	CCFFMpegServerEncoder.prototype = Object.create( CCFrameEncoder );
+	
+	CCFFMpegServerEncoder.prototype.start = function() {
+	
+		this.encoder.start( this.settings );
+	
+	};
+	
+	CCFFMpegServerEncoder.prototype.add = function( canvas ) {
+	
+		this.encoder.add( canvas );
+	
+	}
+	
+	CCFFMpegServerEncoder.prototype.save = function( callback ) {
+	
+	    this.callback = callback;
+	    this.encoder.end();
+	
+	}
+	
+	CCFFMpegServerEncoder.prototype.safeToProceed = function() {
+	    return this.encoder.safeToProceed();
+	};
+	
+	
+	/*function CCGIFEncoder( settings ) {
+	
+		CCFrameEncoder.call( this );
+	
+		settings.quality = settings.quality || 6;
+		this.settings = settings;
+	
+		this.encoder = new GIFEncoder();
+		this.encoder.setRepeat( 1 );
+	  	this.encoder.setDelay( settings.step );
+	  	this.encoder.setQuality( 6 );
+	  	this.encoder.setTransparent( null );
+	  	this.encoder.setSize( 150, 150 );
+	
+	  	this.canvas = document.createElement( 'canvas' );
+	  	this.ctx = this.canvas.getContext( '2d' );
+		
+	}
+	
+	CCGIFEncoder.prototype = Object.create( CCFrameEncoder );
+	
+	CCGIFEncoder.prototype.start = function() {
+	
+		this.encoder.start();
+	
+	}
+	
+	CCGIFEncoder.prototype.add = function( canvas ) {
+	
+		this.canvas.width = canvas.width;
+		this.canvas.height = canvas.height;
+		this.ctx.drawImage( canvas, 0, 0 );
+		this.encoder.addFrame( this.ctx );
+	
+		this.encoder.setSize( canvas.width, canvas.height );
+		var readBuffer = new Uint8Array(canvas.width * canvas.height * 4);
+		var context = canvas.getContext( 'webgl' );
+		context.readPixels(0, 0, canvas.width, canvas.height, context.RGBA, context.UNSIGNED_BYTE, readBuffer);
+		this.encoder.addFrame( readBuffer, true );
+	
+	}
+	
+	CCGIFEncoder.prototype.stop = function() {
+	
+		this.encoder.finish();
+		
+	}
+	
+	CCGIFEncoder.prototype.save = function( callback ) {
+	
+		var binary_gif = this.encoder.stream().getData();
+	
+		var data_url = 'data:image/gif;base64,'+encode64(binary_gif);
+		window.location = data_url;
+		return;
+	
+		var blob = new Blob( [ binary_gif ], { type: "octet/stream" } );
+		var url = window.URL.createObjectURL( blob );
+		callback( url );
+	
+	}*/
+	
+	function CCGIFEncoder( settings ) {
+	
+		CCFrameEncoder.call( this );
+	
+		settings.quality = 31 - ( ( settings.quality * 30 / 100 ) || 10 );
+		settings.workers = settings.workers || 4;
+		this.settings = settings;
+	
+	  	this.canvas = document.createElement( 'canvas' );
+	  	this.ctx = this.canvas.getContext( '2d' );
+	  	this.sizeSet = false;
+	
+	  	this.encoder = new GIF({
+			workers: settings.workers,
+			quality: settings.quality,
+			workerScript: settings.workersPath + 'gif.worker.js'
+		} );
+	  		
+	    this.encoder.on( 'progress', function( progress ) {
+	        if ( this.settings.onProgress ) {
+	            this.settings.onProgress( progress )
+	        }
+	    }.bind( this ) );
+	
+	    this.encoder.on('finished', function( blob ) {
+	        var cb = this.callback;
+	        if ( cb ) {
+	            this.callback = undefined;
+	            cb( URL.createObjectURL(blob) );
+	        }
+	    }.bind( this ) );
+	
+	}
+	
+	CCGIFEncoder.prototype = Object.create( CCFrameEncoder );
+	
+	CCGIFEncoder.prototype.add = function( canvas ) {
+	
+		if( !this.sizeSet ) {
+			this.encoder.setOption( 'width',canvas.width );
+			this.encoder.setOption( 'height',canvas.height );
+			this.sizeSet = true;
+		}
+	
+		this.canvas.width = canvas.width;
+		this.canvas.height = canvas.height;
+		this.ctx.drawImage( canvas, 0, 0 );
+	
+		this.encoder.addFrame( this.ctx, { copy: true, delay: this.settings.step } );
+	
+		/*this.encoder.setSize( canvas.width, canvas.height );
+		var readBuffer = new Uint8Array(canvas.width * canvas.height * 4);
+		var context = canvas.getContext( 'webgl' );
+		context.readPixels(0, 0, canvas.width, canvas.height, context.RGBA, context.UNSIGNED_BYTE, readBuffer);
+		this.encoder.addFrame( readBuffer, true );*/
+	
+	}
+	
+	CCGIFEncoder.prototype.save = function( callback ) {
+	
+	    this.callback = callback;
+	
+		this.encoder.render();
+	
+	}
+	
+	function CCapture( settings ) {
+	
+		var _settings = settings || {},
+			_date = new Date(),
+			_verbose,
+			_time,
+			_performanceTime,
+			_step,
+	        _encoder,
+			_timeouts = [],
+			_intervals = [],
+			_frameCount = 0,
+			_lastFrame = null,
+			_requestAnimationFrameCallback = null,
+			_capturing = false,
+	        _queued = false,
+	        _handlers = {};
+	
+		_settings.framerate = _settings.framerate || 60;
+		_verbose = _settings.verbose || false;
+		_settings.step = 1000.0 / _settings.framerate;
+		
+		_log( 'Step is set to ' + _settings.step + 'ms' );
+	
+	    var _encoders = {
+	      gif: CCGIFEncoder,
+	      webm: CCWebMEncoder,
+	      ffmpegserver: CCFFMpegServerEncoder
+	    };
+	
+	    var ctor = _encoders[ _settings.format ];
+	    if ( !ctor ) {
+	      throw "Error: Incorrect or missing format: Valid formats are " + Object.keys(_encoders).join(", ");
+	    }
+	    _encoder = new ctor( _settings );
+	
+		_encoder.on('process', _process);
+	    _encoder.on('progress', _progress);
+	
+	    if ("performance" in window == false) {
+	    	window.performance = {};
+	    }
+	
+		Date.now = (Date.now || function () {  // thanks IE8
+			return new Date().getTime();
+		});
+	
+		if ("now" in window.performance == false){
+	
+			var nowOffset = Date.now();
+	
+			if (performance.timing && performance.timing.navigationStart){
+				nowOffset = performance.timing.navigationStart
+			}
+	
+			window.performance.now = function now(){
+				return Date.now() - nowOffset;
+			}
+		}
+	
+		var _oldSetTimeout = window.setTimeout,
+			_oldSetInterval = window.setInterval,
+			_oldClearTimeout = window.clearTimeout,
+			_oldRequestAnimationFrame = window.requestAnimationFrame,
+			_oldNow = window.Date.now,
+			_oldPerformanceNow = window.performance.now,
+			_oldGetTime = window.Date.prototype.getTime;
+		// Date.prototype._oldGetTime = Date.prototype.getTime;
+		
+		var media = [];
+	
+	    function _queueCheck() {
+	      if (!_queued) {
+	        // We use oldSetTimeout so we can run even when not the front tab.
+	        _queued = true;
+	        _oldSetTimeout( _process, 10 );  // "1" might be fine too but I want to give the browser at least a moment
+	      }
+	    }
+	
+		function _init() {
+			
+			_log( 'Capturer start' );
+			_time = window.Date.now();
+			_performanceTime = window.performance.now();
+	
+			window.Date.prototype.getTime = function(){
+				return _time;
+			};
+			window.Date.now = function() {
+				return _time;
+			};
+			window.setTimeout = function( callback, time ) {
+				var t = { 
+					callback: callback, 
+					time: time,
+					triggerTime: _time + time
+				};
+				_timeouts.push( t );
+				_log( 'Timeout set to ' + t.time );
+	            _queueCheck();
+				return t;
+			};
+			window.clearTimeout = function( id ) {
+				for( var j = 0; j < _timeouts.length; j++ ) {
+					if( _timeouts[ j ] == id ) {
+						_timeouts.splice( j, 1 );
+						_log( 'Timeout cleared' );
+						continue;
+					}
+				}
+			};
+			window.setInterval = function( callback, time ) {
+				var t = { 
+					callback: callback, 
+					time: time,
+					triggerTime: _time + time
+				};
+				_intervals.push( t );
+				_log( 'Interval set to ' + t.time );
+		        _queueCheck();
+				return t;
+			};
+			window.requestAnimationFrame = function( callback ) {
+				_requestAnimationFrameCallback = callback;
+	            _queueCheck();
+			};
+			window.performance.now = function(){
+				return _performanceTime;
+			};
+	
+			function hookCurrentTime() { 
+				if( !this._hooked ) {
+					this._hooked = true;
+					this._hookedTime = this.currentTime;
+					this.pause();
+					media.push( this );
+				}
+				return this._hookedTime;
+			};
+	
+			Object.defineProperty( HTMLVideoElement.prototype, 'currentTime', { get: hookCurrentTime } )
+			Object.defineProperty( HTMLAudioElement.prototype, 'currentTime', { get: hookCurrentTime } )
+	
+		}
+		
+		function _start() {
+			_init();
+			_encoder.start();
+			_capturing = true;
+		}
+		
+		function _stop() {
+			_capturing = false;
+			_encoder.stop();
+			_destroy();
+		}
+		
+		function _destroy() {
+			_log( 'Capturer stop' );
+			window.setTimeout = _oldSetTimeout;
+			window.setInterval = _oldSetInterval;
+			window.clearTimeout = _oldClearTimeout;
+			window.requestAnimationFrame = _oldRequestAnimationFrame;
+			window.Date.prototype.getTime = _oldGetTime;
+			window.Date.now = _oldNow;
+			window.performance.now = _oldPerformanceNow;
+		}
+	
+		function _capture( canvas ) {
+		
+			if( _capturing ) {
+				_encoder.add( canvas );
+			}
+			
+		}
+		
+		function _process() {
+	
+			if ( !_queued || !_encoder.safeToProceed() ) {
+	
+				return;
+	
+			}
+	
+			_queued = false;
+	
+			_time += _settings.step;
+			_performanceTime += _settings.step;
+			media.forEach( function( v ) {
+				v._hookedTime += _settings.step;
+			} );
+			_frameCount++;
+			_log( 'Frame: ' + _frameCount );
+	
+			for( var j = 0; j < _timeouts.length; j++ ) {
+				if( _time >= _timeouts[ j ].triggerTime ) {
+					_timeouts[ j ].callback();
+					console.log( 'timeout!' );
+					_timeouts.splice( j, 1 );
+					continue;
+				}
+			}
+	
+			for( var j = 0; j < _intervals.length; j++ ) {
+				if( _time >= _intervals[ j ].triggerTime ) {
+					_intervals[ j ].callback();
+					_intervals[ j ].triggerTime += _intervals[ j ].time;
+					console.log( 'interval!' );
+					continue;
+				}
+			}
+			
+	        var cb =  _requestAnimationFrameCallback;
+			if( cb ) {
+				_requestAnimationFrameCallback = null;
+				cb( _time - g_startTime );
+	        }
+		}
+		
+		function _save( callback ) {
+	
+			_encoder.save( callback );
+			
+		}
+		
+		function _log( message ) {
+			if( _verbose ) console.log( message );
+		}
+	
+	    function _on( event, handler ) {
+	
+	        _handlers[event] = handler;
+	
+	    }
+	
+	    function _emit( event ) {
+	
+	        var handler = _handlers[event];
+	        if ( handler ) {
+	
+	            handler.apply( null, Array.prototype.slice.call( arguments, 1 ) );
+	
+	        }
+	
+	    }
+	
+	    function _progress( progress ) {
+	
+	        _emit( 'progess', progress );
+	
+	    }
+	
+		return {
+			start: _start,
+			capture: _capture,
+			stop: _stop,
+			save: _save,
+	        on: _on
+		}
+	}
+	
+	window.CCapture = CCapture;
+	
+	}) ();
 
 /***/ }
 /******/ ]);

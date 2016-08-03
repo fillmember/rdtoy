@@ -1,9 +1,25 @@
 @import 'normalize.css';
 input,
 button,
-label {
+label,
+select {
   cursor: pointer;
   outline: none;
+}
+.displayContainer.pulsing.red {
+  -webkit-animation: pulse-red-color 1s linear infinite alternate;
+  -moz-animation: pulse-red-color 1s linear infinite alternate;
+  -o-animation: pulse-red-color 1s linear infinite alternate;
+  -ms-animation: pulse-red-color 1s linear infinite alternate;
+  animation: pulse-red-color 1s linear infinite alternate;
+}
+button.pulsing.red,
+.button.pulsing.red {
+  -webkit-animation: pulse-red-background-color 1s linear infinite alternate;
+  -moz-animation: pulse-red-background-color 1s linear infinite alternate;
+  -o-animation: pulse-red-background-color 1s linear infinite alternate;
+  -ms-animation: pulse-red-background-color 1s linear infinite alternate;
+  animation: pulse-red-background-color 1s linear infinite alternate;
 }
 button,
 .button {
@@ -165,7 +181,7 @@ input[type=checkbox].toggle + label:after {
   background-color: #fff;
 }
 input[type=checkbox].toggle:checked + label:before {
-  background-color: #ff0;
+  background-color: #0f9;
 }
 input[type=checkbox].toggle:checked + label:after {
   margin-left: 12.36px;
@@ -193,6 +209,9 @@ input[type=range]::-webkit-slider-thumb {
 input[type=range]:focus {
   outline: none;
 }
+select {
+  background: #fff;
+}
 button,
 .button,
 select,
@@ -209,6 +228,70 @@ button:active,
 input[type=checkbox]:checked + label i.on:after,
 input[type=range]:active::-webkit-slider-thumb {
   background: #ff0;
+}
+@-moz-keyframes pulse-red-background-color {
+  0% {
+    background-color: #f30;
+  }
+  100% {
+    background-color: #fff;
+  }
+}
+@-webkit-keyframes pulse-red-background-color {
+  0% {
+    background-color: #f30;
+  }
+  100% {
+    background-color: #fff;
+  }
+}
+@-o-keyframes pulse-red-background-color {
+  0% {
+    background-color: #f30;
+  }
+  100% {
+    background-color: #fff;
+  }
+}
+@keyframes pulse-red-background-color {
+  0% {
+    background-color: #f30;
+  }
+  100% {
+    background-color: #fff;
+  }
+}
+@-moz-keyframes pulse-red-color {
+  0% {
+    color: #f30;
+  }
+  100% {
+    color: #000;
+  }
+}
+@-webkit-keyframes pulse-red-color {
+  0% {
+    color: #f30;
+  }
+  100% {
+    color: #000;
+  }
+}
+@-o-keyframes pulse-red-color {
+  0% {
+    color: #f30;
+  }
+  100% {
+    color: #000;
+  }
+}
+@keyframes pulse-red-color {
+  0% {
+    color: #f30;
+  }
+  100% {
+    color: #000;
+  }
 }
 .hideCursor {
   cursor: none;
@@ -447,14 +530,6 @@ body {
 }
 .sliderLabel {
   width: 31.2%;
-}
-.toggleContainer {
-  -webkit-box-pack: distribute;
-  -moz-box-pack: distribute;
-  -o-box-pack: distribute;
-  -ms-flex-pack: distribute;
-  -webkit-justify-content: space-around;
-  justify-content: space-around;
 }
 .displayLabel {
   width: 33%;

@@ -19,18 +19,19 @@ void main() {
 
     vec2 uv  = texture2D( tSource, vUv ).rg;
     vec2 lapl =
-         + 0.05 * (
-            texture2D( tSource, vUv + vec2( -sx, -sy ) ).rg +
-            texture2D( tSource, vUv + vec2(  sx, -sy ) ).rg +
-            texture2D( tSource, vUv + vec2( -sx,  sy ) ).rg +
-            texture2D( tSource, vUv + vec2(  sx,  sy ) ).rg
-        )
-         + 0.20 * (
+         // + 0.05 * (
+         //    texture2D( tSource, vUv + vec2( -sx, -sy ) ).rg +
+         //    texture2D( tSource, vUv + vec2(  sx, -sy ) ).rg +
+         //    texture2D( tSource, vUv + vec2( -sx,  sy ) ).rg +
+         //    texture2D( tSource, vUv + vec2(  sx,  sy ) ).rg
+         // )
+         // + 0.20 * (
+         + 0.25 * (
             texture2D( tSource, vUv + vec2( -sx, 0.0 ) ).rg +
             texture2D( tSource, vUv + vec2(  sx, 0.0 ) ).rg +
             texture2D( tSource, vUv + vec2( 0.0, -sy ) ).rg +
             texture2D( tSource, vUv + vec2( 0.0,  sy ) ).rg
-        )
+         )
          - uv;
     float reaction = uv.r * uv.g * uv.g;
     float du = 1.0 * lapl.r - reaction +  feed * (1.0 - uv.r);

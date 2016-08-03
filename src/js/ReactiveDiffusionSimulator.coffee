@@ -116,10 +116,9 @@ class ReactiveDiffusionSimulator
 		else
 			@uniforms.brush.value.copy x
 		if not @running
-			n = @subStepCount
-			@subStepCount = 1
-			@step()
-			@subStepCount = n
+			@mesh.material = @mat
+			@subStep 1
+		@events.emit 'draw'
 
 	drawOff: -> @uniforms.brush.value = brushOff.clone()
 

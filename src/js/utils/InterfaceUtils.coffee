@@ -201,7 +201,9 @@ lib.display = ({
 		if eventNames
 			eventNames.forEach (n) -> eventEmitter.on n , handler
 	update()
-	return @col 'displayContainer' , [ label , span ]
+	col = @col 'displayContainer' , [ label , span ]
+	col.data update: update
+	return col
 
 lib.button = ({
 	id = undefined
@@ -248,7 +250,7 @@ lib.button = ({
 			# only affect others when this is checked
 			if data.checked is false then return
 			others = root
-				.find "button"
+				.find "button, .button"
 				# exclude self
 				.not this
 				# find members of my group
@@ -287,7 +289,7 @@ lib.toggle = ({
 	input.get(0).checked = checked
 	if checked then input.trigger 'change'
 	return @col 'toggleContainer' , [
-		@itemLabel [ (if icon then @icon(icon)) , name ]
+		@itemLabel [ (if icon? then @icon(icon)) , name ]
 		input
 		label
 	]

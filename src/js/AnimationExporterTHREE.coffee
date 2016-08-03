@@ -30,9 +30,6 @@ class AnimationExporter
 	}) ->
 		# programming
 		@events = new EventEmitter()
-		# file
-		@name = 'output'
-		@dataType = "image/#{@extension}"
 		# frame
 		@frame = 0
 		@frameStep = 1

@@ -5,9 +5,29 @@ borderStyle = solid
 borderArgs = borderWidth borderStyle borderColor
 backgroundColor = #FFF
 
-input, button, label
+input, button, label, select
 	cursor pointer
 	outline none
+
+@keyframes pulse-red-background-color
+	0%
+		background-color #F30
+	100%
+		background-color #FFF
+@keyframes pulse-red-color
+	0%
+		color #F30
+	100%
+		color #000
+
+.displayContainer
+	&.pulsing.red
+		animation pulse-red-color 1s linear infinite alternate
+
+button
+.button
+	&.pulsing.red
+		animation pulse-red-background-color 1s linear infinite alternate
 
 button
 .button
@@ -117,7 +137,7 @@ input[type=checkbox].toggle
 			background-color backgroundColor
 	&:checked + label
 		&:before
-			background-color #FF0
+			background-color #0F9
 		&:after
 			margin-left checkboxWidth - checkboxHeight
 
@@ -146,6 +166,11 @@ input[type=range]
 
 	&:focus
 		outline none
+
+// Select
+select
+	background backgroundColor
+
 
 // YEE
 

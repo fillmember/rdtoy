@@ -506,6 +506,5 @@ function CCapture( settings ) {
 }
 
 window.CCapture = CCapture;
-module.exports = CCapture;
 
 }) ();
