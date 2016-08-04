@@ -14,6 +14,8 @@ class DrawPad
 		@backgroundColor
 	}) ->
 		@context = @canvas.getContext("2d")
+		@width = @canvas.width
+		@height = @canvas.height
 
 		@mouseEventManager = MouseUtils.bind
 			dom  : @canvas
@@ -145,7 +147,8 @@ class DrawPad
 		@drawOff()
 
 	onMouseMove: (evt) ->
-		pos = MouseUtils.getPos( evt.target , evt.clientX , evt.clientY )
+		pos = MouseUtils.getRelativePos( evt.target , evt.clientX , evt.clientY )
+		pos = x : pos.x * @width , y : pos.y * @height
 		@cursorTo pos.x , pos.y
 		if not @drawing then return
 		@drawOn pos
@@ -162,12 +165,13 @@ class DrawPad
 		size = @brushSize * 2
 		x = x - @brushSize
 		y = y - @brushSize
-		@cursor.css
-			left: x
-			top: y
-			'border-color' : "#{@brushColor.getStyle()}"
-			width: size
-			height: size
+		TweenLite.set @cursor , {
+			x : x
+			y : y
+			borderColor : @brushColor.getStyle()
+			width : size
+			height : size
+		}
 		blur = "blur(#{ @brushSoftness }px)"
 		@cursor.css "filter" , blur
 		@cursor.css "webkitFilter" , blur
@@ -177,17 +181,12 @@ class DrawPad
 		@cursor = $ '<div class="cursor"></div>'
 		$ @canvas
 			.addClass 'hideCursor'
-		# $(@canvas).append @cursor
-		# @cursor.appendTo @canvas
-		$(@canvas).parent().append @cursor
+			.parent()
+				.append @cursor
 	
 	showDebugInterface: (gui) ->
 		f = gui.addFolder "DrawPad"
 		f.open()
 		f.add( @ , 'brushSoftness' , 0 , 1 )
-		# f.add( @brushColor , "r" , 0 , 0.8 ).name("brush:birth rate")
-		# f.add( @brushColor , "g" , 0 , 0.7 ).name("brush:kill rate")
-		# f.add( @brushColor , "b" , 0.05 , 0.5 ).name("brush:sim step")
-		# f.add( @ , "brushSize" , 5 , 100 ).name("brush:size")
 
 module.exports = DrawPad

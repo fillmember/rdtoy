@@ -139,7 +139,7 @@ lib.section = ({
 				TweenLite.set dom , {height: 'auto'}
 				toHeight = dom.height()
 				# animation
-				TweenLite.to phaseButton , t , buttonNormal
+				TweenLite.to phaseButton , halfT , buttonNormal
 				TweenLite.fromTo dom , t , {height: fromHeight} , {
 					height:toHeight
 					borderBottom: borderBottom0
@@ -158,7 +158,7 @@ lib.section = ({
 				TweenLite.to sliderLabel , halfT , width: sliderLabelNormalWidth
 			when 1
 				TweenLite.set dom , height : 'auto'
-				TweenLite.to phaseButton , t , buttonMinimal
+				TweenLite.to phaseButton , halfT , buttonMinimal
 				#
 				iconText = dom.find('i.fa + span.text')
 				TweenLite.to iconText , halfT , {alpha: 0, scale: 0, height: iconTextFoldHeight , ease : ease}
@@ -169,7 +169,7 @@ lib.section = ({
 				sliderLabel = dom.find('.sliderLabel')
 				TweenLite.fromTo sliderLabel , halfT , {width: sliderLabelNormalWidth} , {width: sliderLabelMinimalWidth , ease : ease}
 			when 2
-				TweenLite.to phaseButton , t , buttonFolded
+				TweenLite.to phaseButton , halfT , buttonFolded
 				TweenLite.to dom , t , {
 					height : sectionFoldHeight
 					borderBottom : borderBottom1

@@ -25,8 +25,8 @@ window.ready = ready
 envmap = new EnvironmentMap
 	canvas: $('#drawCanvas').get(0)
 	video: $('#envmapVideo').get(0)
+envmap.toggleVisibility false
 ready.setEnvMap envmap.texture
-
 ready.events.on 'step' , -> if envmap.video is true then envmap.updateTexture()
 
 # Helper Function
@@ -47,17 +47,6 @@ $controls     = $('#controls')
 # #######################
 # General Interface
 # #######################
-hideDrawCanvas = ->
-	envmap.canvas.style.display = "none"
-	envmap.videoTag.style.display = "none"
-showDrawCanvas = ->
-	envmap.canvas.style.display = "block"
-	envmap.videoTag.style.display = "block"
-hideDrawCanvas()
-
-toggleCursor = (bool) ->
-	$(envmap.canvas).toggleClass 'hideCursor' , bool
-	$('.cursor').css 'opacity' , if bool then 1 else 0
 setBothBrushSize = (v) ->
 	ready.uniforms.brushSize.value = v
 	envmap.brushSize = v * 0.5
@@ -77,7 +66,7 @@ $controls.append UI.section
 					checked: true
 					group: 'drawDecision'
 					root: $controls
-					action: hideDrawCanvas
+					action: envmap.toggleVisibility.bind(envmap,false)
 				UI.button
 					icon: 'fa-map-o'
 					name: 'map'
@@ -85,8 +74,18 @@ $controls.append UI.section
 					checkbox: true
 					group: 'drawDecision'
 					root: $controls
-					action: showDrawCanvas
+					action: envmap.toggleVisibility.bind(envmap,true)
 			]
+			UI.slider
+				icon: 'fa-search'
+				name: 'zoom'
+				object: {n: 1}
+				property: 'n'
+				min: 0.2
+				max: 2.0
+				step: 0.1
+				display: (v) -> Math.round(v * 100) + "%"
+				onInput: (v) -> TweenLite.to '#canvasContainer' , 0.1 , {scale:v}
 			UI.slider
 				icon: 'fa-arrows-h'
 				name: 'width'
@@ -107,16 +106,6 @@ $controls.append UI.section
 				display: (v) -> v + 'px'
 				transform: (v) -> Math.pow 2 , (6 + parseInt v)
 				onChange: (v) -> setCanvasSize ready.width , v
-			UI.col [
-				UI.toggle
-					name: 'show cursor'
-					checked: true
-					action: toggleCursor
-				UI.toggle
-					name: 'show map'
-					checked: true
-					action: (v) -> $(envmap.canvas).animate { opacity: if v then 0.5 else 0 } , 100
-			]
 		]
 		UI.item [
 			UI.slider
@@ -133,7 +122,7 @@ $controls.append UI.section
 # #######################
 # Ready Interface
 # #######################
-$sectionReady = UI.section({ icon: 'fa-flask', name: 'ready' })
+$sectionReady = UI.section({ icon: 'fa-flask', name: 'simulation' })
 $controls.append $sectionReady
 ready.setupInterface $sectionReady , $controls
 

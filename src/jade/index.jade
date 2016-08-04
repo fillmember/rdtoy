@@ -8,7 +8,7 @@ html
 		title Reactive Diffusion Playground by fillmember
 	body
 		#outerWrapper.flex
-			.flex.flex-column.flex-1x
+			.flex.flex-column.flex-1x.scrollpane
 				.flex.flex-1x.scrollpane.content-center
 					main#content
 						#canvasContainer
@@ -16,8 +16,6 @@ html
 							canvas#drawCanvas
 						#videoContainer.flex
 							video#envmapVideo.hide(loop, controls)
-							//- button.flex.content-center
-							//- 	i.fa.fa-trash-o
 				aside#imageManager
 			aside#controls
 

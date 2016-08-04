@@ -1,4 +1,3 @@
-
 DrawPad = require './DrawPad'
 UI = require './utils/InterfaceUtils'
 stackBlur = require './../vendor/StackBlur'
@@ -21,6 +20,15 @@ class EnvironmentMap extends DrawPad
 		@videoTag = options.video or document.createElement('video')
 		@videoTag.ontimeupdate = => @updateTexture()
 		@videoTag.muted = true
+
+	toggleVisibility: (bool) ->
+		t = 0.2
+		o = {
+			autoAlpha : if bool then 0.5 else 0
+			display   : if bool then 'block' else 'none'
+		}
+		TweenLite.to @videoTag , t , o
+		TweenLite.to @canvas , t , o
 
 	updateTexture: -> @texture.needsUpdate = true
 

@@ -43,6 +43,7 @@ lib =
 
 	getPos : ( dom , x , y ) ->
 		rect = dom.getBoundingClientRect()
+		console.log x , y , rect.left , rect.top , dom.width
 		return {
 			x: x - rect.left
 			y: y - rect.top
@@ -51,8 +52,8 @@ lib =
 	getRelativePos : ( dom , x , y ) ->
 		rect = dom.getBoundingClientRect()
 		return {
-			x: (x - rect.left) / rect.width,
-			y: (y - rect.top ) / rect.height
+			x: (x - rect.left) / (rect.width),
+			y: (y - rect.top ) / (rect.height)
 		}
 
 	posToUV : ( vec ) ->

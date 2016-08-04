@@ -401,6 +401,10 @@ body {
   top: 0;
   left: 0;
 }
+#canvasContainer canvas:first-child {
+  -webkit-box-shadow: #ccc 5px 5px 0;
+  box-shadow: #ccc 5px 5px 0;
+}
 .hide {
   display: none !important;
 }

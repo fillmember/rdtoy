@@ -27,14 +27,10 @@ class GradientMappingMaterial
 		# Objects
 		$gradient = $('<div class="gradientui"></div>')
 		# Add to DOM Tree
-		section.append UI.item [
-			UI.itemHeader UI.spanText 'Display Color'
-			UI.col $gradient
-		]
+		section.append UI.item UI.col $gradient
 		# Gradient UI
 		$gradient
-			.gradient 
-				values: defaultValues
+			.gradient values: defaultValues
 			.gradient 'setUpdateCallback' , () => 
 				@updateUniforms $gradient.gradient "getValuesRGBS"
 		@updateUniforms $gradient.gradient "getValuesRGBS"
