@@ -192,16 +192,18 @@ class ReactiveDiffusionSimulator
 				object   : @uniforms.feedFactor
 				property : 'value'
 				min      : 0
-				max      : 0.1
-				step     : 0.001
+				max      : 0.15
+				step     : 0.01
+				display  : (v) -> Math.round(1000 * v) + '%'
 			UI.slider
 				name     : 'kill'
 				icon     : 'fa-bolt'
 				object   : @uniforms.killFactor
 				property : 'value'
 				min      : 0
-				max      : 0.1
-				step     : 0.001
+				max      : 0.15
+				step     : 0.01
+				display  : (v) -> Math.round(1000 * v) + '%'
 			UI.slider
 				name     : 'step'
 				icon     : 'fa-search'
