@@ -60504,7 +60504,7 @@
 	        property: 'value',
 	        min: 0,
 	        max: 0.15,
-	        step: 0.01,
+	        step: 0.0025,
 	        display: function(v) {
 	          return Math.round(1000 * v) + '%';
 	        }
@@ -60515,7 +60515,7 @@
 	        property: 'value',
 	        min: 0,
 	        max: 0.15,
-	        step: 0.01,
+	        step: 0.0025,
 	        display: function(v) {
 	          return Math.round(1000 * v) + '%';
 	        }
@@ -60524,15 +60524,15 @@
 	        icon: 'fa-search',
 	        object: this,
 	        property: "stepSize",
-	        min: 0.125,
+	        min: 0.1,
 	        max: 6,
-	        step: 0.125,
+	        step: 0.1,
 	        onInput: (function(_this) {
 	          return function() {
-	            var texh, texw;
-	            texw = Math.min(maxTextureSize, 0.5 * _this.width);
-	            texh = Math.min(maxTextureSize, 0.5 * _this.height);
-	            return _this.uniforms.step.value.set(_this.stepSize / texw, _this.stepSize / texh);
+	            var x, y;
+	            x = _this.stepSize / Math.min(maxTextureSize, 0.5 * _this.width);
+	            y = _this.stepSize / Math.min(maxTextureSize, 0.5 * _this.height);
+	            return _this.uniforms.step.value.set(x, y);
 	          };
 	        })(this),
 	        display: function(v) {
@@ -64109,7 +64109,7 @@
 /* 21 */
 /***/ function(module, exports) {
 
-	module.exports = "varying vec2 vUv;\nuniform vec2 step;\nuniform sampler2D tSource;\nuniform sampler2D tEnv;\nuniform float delta;\nuniform float feedFactor;\nuniform float killFactor;\nuniform vec2 brush;\nuniform vec2 brushColor;\nuniform float brushSize;\n\nvoid main() {\n\n    vec3 vEnv = texture2D( tEnv, vUv ).rgb;\n    float feed = vEnv.r * feedFactor;\n    float kill = vEnv.g * killFactor;\n    float sx = step.x * vEnv.b * 10.0;\n    float sy = step.y * vEnv.b * 10.0;\n\n    vec2 uv  = texture2D( tSource, vUv ).rg;\n    vec2 lapl =\n         + 0.05 * (\n            texture2D( tSource, vUv + vec2( -sx, -sy ) ).rg +\n            texture2D( tSource, vUv + vec2(  sx, -sy ) ).rg +\n            texture2D( tSource, vUv + vec2( -sx,  sy ) ).rg +\n            texture2D( tSource, vUv + vec2(  sx,  sy ) ).rg\n         )\n         + 0.20 * (\n         // + 0.25 * (\n            texture2D( tSource, vUv + vec2( -sx, 0.0 ) ).rg +\n            texture2D( tSource, vUv + vec2(  sx, 0.0 ) ).rg +\n            texture2D( tSource, vUv + vec2( 0.0, -sy ) ).rg +\n            texture2D( tSource, vUv + vec2( 0.0,  sy ) ).rg\n         )\n         - uv;\n    float reaction = uv.r * uv.g * uv.g;\n    float du = 1.0 * lapl.r - reaction +  feed * (1.0 - uv.r);\n    float dv = 0.5 * lapl.g + reaction - (feed + kill) * uv.g;\n    vec2 dst = uv + delta * vec2(du, dv);\n\n    if (brush.x > 0.0) {\n        vec2 diff = (vUv - brush) / step;\n        float dist = dot(diff, diff);\n        dst = dist < brushSize ? brushColor : dst.rg;\n    }\n    \n    gl_FragColor = vec4(dst, 0.0, 1.0);\n\n}"
+	module.exports = "varying vec2 vUv;\nuniform vec2 step;\nuniform sampler2D tSource;\nuniform sampler2D tEnv;\nuniform float delta;\nuniform float feedFactor;\nuniform float killFactor;\nuniform vec2 brush;\nuniform vec2 brushColor;\nuniform float brushSize;\n\nvoid main() {\n\n    vec3 vEnv = texture2D( tEnv, vUv ).rgb;\n    float feed = vEnv.r * feedFactor;\n    float kill = vEnv.g * killFactor;\n    float sx = step.x * vEnv.b * 10.0;\n    float sy = step.y * vEnv.b * 10.0;\n\n    vec2 uv  = texture2D( tSource, vUv ).rg;\n    vec2 lapl =\n         + 0.05 * (\n            texture2D( tSource, vUv + vec2( -sx, -sy ) ).rg +\n            texture2D( tSource, vUv + vec2(  sx, -sy ) ).rg +\n            texture2D( tSource, vUv + vec2( -sx,  sy ) ).rg +\n            texture2D( tSource, vUv + vec2(  sx,  sy ) ).rg\n         )\n         + 0.20 * (\n            texture2D( tSource, vUv + vec2( -sx, 0.0 ) ).rg +\n            texture2D( tSource, vUv + vec2(  sx, 0.0 ) ).rg +\n            texture2D( tSource, vUv + vec2( 0.0, -sy ) ).rg +\n            texture2D( tSource, vUv + vec2( 0.0,  sy ) ).rg\n         )\n         - uv;\n    float reaction = uv.r * uv.g * uv.g;\n    float du = 1.0 * lapl.r - reaction +  feed * (1.0 - uv.r);\n    float dv = 0.5 * lapl.g + reaction - (feed + kill) * uv.g;\n    vec2 dst = uv + delta * vec2(du, dv);\n\n    if (brush.x > 0.0) {\n        vec2 diff = (vUv - brush) / step;\n        float dist = dot(diff, diff);\n        dst = dist < brushSize ? brushColor : dst.rg;\n    }\n    \n    gl_FragColor = vec4(dst, 0.0, 1.0);\n\n}"
 
 /***/ },
 /* 22 */

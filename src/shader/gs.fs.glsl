@@ -26,7 +26,6 @@ void main() {
             texture2D( tSource, vUv + vec2(  sx,  sy ) ).rg
          )
          + 0.20 * (
-         // + 0.25 * (
             texture2D( tSource, vUv + vec2( -sx, 0.0 ) ).rg +
             texture2D( tSource, vUv + vec2(  sx, 0.0 ) ).rg +
             texture2D( tSource, vUv + vec2( 0.0, -sy ) ).rg +

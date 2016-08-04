@@ -190,7 +190,7 @@ class ReactiveDiffusionSimulator
 				property : 'value'
 				min      : 0
 				max      : 0.15
-				step     : 0.01
+				step     : 0.0025
 				display  : (v) -> Math.round(1000 * v) + '%'
 			UI.slider
 				name     : 'kill'
@@ -199,20 +199,20 @@ class ReactiveDiffusionSimulator
 				property : 'value'
 				min      : 0
 				max      : 0.15
-				step     : 0.01
+				step     : 0.0025
 				display  : (v) -> Math.round(1000 * v) + '%'
 			UI.slider
 				name     : 'step'
 				icon     : 'fa-search'
 				object   : @
 				property : "stepSize"
-				min      : 0.125
+				min      : 0.1
 				max      : 6
-				step     : 0.125
+				step     : 0.1
 				onInput  : =>
-					texw = Math.min maxTextureSize , 0.5 * @width
-					texh = Math.min maxTextureSize , 0.5 * @height
-					@uniforms.step.value.set @stepSize / texw , @stepSize / texh
+					x = @stepSize / Math.min maxTextureSize , 0.5 * @width
+					y = @stepSize / Math.min maxTextureSize , 0.5 * @height
+					@uniforms.step.value.set x , y
 				display: (v) -> v + 'x'
 		]
 
