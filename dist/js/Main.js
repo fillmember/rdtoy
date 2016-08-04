@@ -52111,13 +52111,13 @@
 	      return;
 	    }
 	    if (this.iteration % 2 === 0) {
-	      this.uniforms.tSource.value = this.tex1;
+	      this.uniforms.tSource.value = this.tex1.texture;
 	      this.renderer.render(this.scene, this.camera, this.tex2);
-	      this.uniforms.tSource.value = this.tex2;
+	      this.uniforms.tSource.value = this.tex2.texture;
 	    } else {
-	      this.uniforms.tSource.value = this.tex2;
+	      this.uniforms.tSource.value = this.tex2.texture;
 	      this.renderer.render(this.scene, this.camera, this.tex1);
-	      this.uniforms.tSource.value = this.tex1;
+	      this.uniforms.tSource.value = this.tex1.texture;
 	    }
 	    this.iteration += 1;
 	    n -= 1;

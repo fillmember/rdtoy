@@ -127,13 +127,13 @@ class ReactiveDiffusionSimulator
 	subStep: ( n ) ->
 		if n <= 0 then return
 		if @iteration % 2 is 0
-			@uniforms.tSource.value = @tex1
+			@uniforms.tSource.value = @tex1.texture
 			@renderer.render @scene , @camera , @tex2
-			@uniforms.tSource.value = @tex2
+			@uniforms.tSource.value = @tex2.texture
 		else
-			@uniforms.tSource.value = @tex2
+			@uniforms.tSource.value = @tex2.texture
 			@renderer.render @scene , @camera , @tex1
-			@uniforms.tSource.value = @tex1
+			@uniforms.tSource.value = @tex1.texture
 		@iteration += 1
 		# Recursive
 		n -= 1
