@@ -57,6 +57,37 @@ $controls.append UI.section
 	name: 'playground'
 	child: [
 		UI.item [
+			UI.col [
+				UI.button
+					link: true
+					action: (btn) -> btn.prop 'href' , 'help.html'
+					icon: 'fa-question-circle'
+					name: 'help'
+					classes: 'space'
+				'&nbsp;'
+				UI.button
+					link: true
+					action: (btn) -> btn.prop 'href' , 'http://github.com/fillmember/rdtoy'
+					icon: 'fa-github'
+					name: 'github'
+					classes: 'space'
+				'&nbsp;'
+				UI.button
+					link: true
+					action: (btn) -> btn.prop 'href' , 'http://rdplaygallery.fillmember.net'
+					icon: 'fa-th'
+					name: 'gallery'
+					classes: 'space'
+				'&nbsp;'
+				UI.button
+					link: true
+					action: (btn) -> btn.prop 'href' , 'mailto:fillmember@gmail.com'
+					icon: 'fa-dot-circle-o'
+					name: 'ten'
+					classes: 'space'
+			]
+		]
+		UI.item [
 			UI.btnGroup [
 				UI.button
 					icon: 'fa-flask'
@@ -142,44 +173,3 @@ exporter = new Exporter
 	simulator : ready
 	canvas    : ready.renderer.domElement
 	UIRoot    : $controls
-
-#
-#
-#
-
-$controls.append UI.section
-	icon: 'fa-info-circle'
-	name: 'info'
-	child: [
-		UI.item [
-			UI.col [
-				UI.button
-					link: true
-					action: (btn) -> btn.prop 'href' , 'help.html'
-					icon: 'fa-question-circle'
-					name: 'help'
-					classes: 'priority space'
-				'&nbsp;'
-				UI.button
-					link: true
-					action: (btn) -> btn.prop 'href' , 'http://github.com/fillmember/rdtoy'
-					icon: 'fa-github'
-					name: 'github'
-					classes: 'space'
-				'&nbsp;'
-				UI.button
-					link: true
-					action: (btn) -> btn.prop 'href' , 'http://rdplaygallery.fillmember.net'
-					icon: 'fa-th'
-					name: 'gallery'
-					classes: 'space'
-				'&nbsp;'
-				UI.button
-					link: true
-					action: (btn) -> btn.prop 'href' , 'mailto:fillmember@gmail.com'
-					icon: 'fa-dot-circle-o'
-					name: 'ten'
-					classes: 'space'
-			]
-		]
-	]
