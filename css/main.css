@@ -21,6 +21,10 @@ button.pulsing.red,
   -ms-animation: pulse-red-background-color 1s linear infinite alternate;
   animation: pulse-red-background-color 1s linear infinite alternate;
 }
+button.priority,
+.button.priority {
+  background-color: #bfc;
+}
 button,
 .button {
   text-align: center;
@@ -359,15 +363,6 @@ input[type=range]:active::-webkit-slider-thumb {
 }
 .scrollpane {
   overflow: auto;
-}
-#imageManager {
-  width: 100%;
-  height: 0;
-  background: #369;
-  overflow: hidden;
-}
-#imageManager.active {
-  height: 10em;
 }
 body {
   font-family: 'Open Sans', sans-serif;
