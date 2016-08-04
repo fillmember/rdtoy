@@ -19,38 +19,30 @@ h5 {
   font-size: 1em;
 }
 body {
-  margin: unit;
+  margin: 0;
   background-color: #eee;
+  font-size: 12px;
 }
 #wrapper {
   width: 30em;
+  min-width: 272px;
+  max-width: 720px;
   margin: 24px auto;
 }
-#wrapper h1,
-#wrapper h2,
-#wrapper h3,
-#wrapper p {
+h1,
+h2,
+h3,
+p,
+a {
   position: relative;
   margin: 0 0 24px 0;
   padding: 0;
   line-height: 24px;
 }
-svg {
-  width: 100%;
-  border: 1px solid #f00;
-}
-a {
-  position: relative;
-}
 i.fa {
   position: absolute;
   top: 3px;
   left: -18px;
-}
-blockquote {
-  margin: 12px;
-  padding: 12px;
-  border: 1px solid #f00;
 }
 h1,
 h2,
@@ -80,4 +72,9 @@ h2:after {
 }
 h3:after {
   content: 'h3';
+}
+@media only screen and (max-width: 767px) {
+  #wrapper {
+    width: 80%;
+  }
 }
