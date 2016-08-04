@@ -44,7 +44,7 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $, $controls, $sectionEnv, $sectionReady, EnvironmentMap, Exporter, MouseUtils, ReactiveDiffusionSimulator, THREE, UI, defaultBrushSize, envmap, exporter, gsap, hideDrawCanvas, ready, setBothBrushSize, setCanvasSize, showDrawCanvas, toggleCursor;
+	var $, $controls, $sectionEnv, $sectionReady, EnvironmentMap, Exporter, MouseUtils, ReactiveDiffusionSimulator, THREE, UI, defaultBrushSize, envmap, exporter, gsap, ready, setBothBrushSize, setCanvasSize;
 	
 	gsap = __webpack_require__(7);
 	
@@ -87,6 +87,8 @@
 	  video: $('#envmapVideo').get(0)
 	});
 	
+	envmap.toggleVisibility(false);
+	
 	ready.setEnvMap(envmap.texture);
 	
 	ready.events.on('step', function() {
@@ -104,23 +106,6 @@
 	setCanvasSize(512, 512);
 	
 	$controls = $('#controls');
-	
-	hideDrawCanvas = function() {
-	  envmap.canvas.style.display = "none";
-	  return envmap.videoTag.style.display = "none";
-	};
-	
-	showDrawCanvas = function() {
-	  envmap.canvas.style.display = "block";
-	  return envmap.videoTag.style.display = "block";
-	};
-	
-	hideDrawCanvas();
-	
-	toggleCursor = function(bool) {
-	  $(envmap.canvas).toggleClass('hideCursor', bool);
-	  return $('.cursor').css('opacity', bool ? 1 : 0);
-	};
 	
 	setBothBrushSize = function(v) {
 	  ready.uniforms.brushSize.value = v;
@@ -143,7 +128,7 @@
 	          checked: true,
 	          group: 'drawDecision',
 	          root: $controls,
-	          action: hideDrawCanvas
+	          action: envmap.toggleVisibility.bind(envmap, false)
 	        }), UI.button({
 	          icon: 'fa-map-o',
 	          name: 'map',
@@ -151,9 +136,27 @@
 	          checkbox: true,
 	          group: 'drawDecision',
 	          root: $controls,
-	          action: showDrawCanvas
+	          action: envmap.toggleVisibility.bind(envmap, true)
 	        })
 	      ]), UI.slider({
+	        icon: 'fa-search',
+	        name: 'zoom',
+	        object: {
+	          n: 1
+	        },
+	        property: 'n',
+	        min: 0.2,
+	        max: 2.0,
+	        step: 0.1,
+	        display: function(v) {
+	          return Math.round(v * 100) + "%";
+	        },
+	        onInput: function(v) {
+	          return TweenLite.to('#canvasContainer', 0.1, {
+	            scale: v
+	          });
+	        }
+	      }), UI.slider({
 	        icon: 'fa-arrows-h',
 	        name: 'width',
 	        object: {
@@ -189,21 +192,7 @@
 	        onChange: function(v) {
 	          return setCanvasSize(ready.width, v);
 	        }
-	      }), UI.col([
-	        UI.toggle({
-	          name: 'show cursor',
-	          checked: true,
-	          action: toggleCursor
-	        }), UI.toggle({
-	          name: 'show map',
-	          checked: true,
-	          action: function(v) {
-	            return $(envmap.canvas).animate({
-	              opacity: v ? 0.5 : 0
-	            }, 100);
-	          }
-	        })
-	      ])
+	      })
 	    ]), UI.item([
 	      UI.slider({
 	        icon: 'fa-paint-brush',
@@ -224,7 +213,7 @@
 	
 	$sectionReady = UI.section({
 	  icon: 'fa-flask',
-	  name: 'ready'
+	  name: 'simulation'
 	});
 	
 	$controls.append($sectionReady);
@@ -51897,6 +51886,7 @@
 	  getPos: function(dom, x, y) {
 	    var rect;
 	    rect = dom.getBoundingClientRect();
+	    console.log(x, y, rect.left, rect.top, dom.width);
 	    return {
 	      x: x - rect.left,
 	      y: y - rect.top
@@ -52617,7 +52607,7 @@
 	  GradientMappingMaterial.prototype.setupInterface = function(section) {
 	    var $gradient, bw_toggle;
 	    $gradient = $('<div class="gradientui"></div>');
-	    section.append(UI.item([UI.itemHeader(UI.spanText('Display Color')), UI.col($gradient)]));
+	    section.append(UI.item(UI.col($gradient)));
 	    $gradient.gradient({
 	      values: defaultValues
 	    }).gradient('setUpdateCallback', (function(_this) {
@@ -63673,7 +63663,7 @@
 	          height: 'auto'
 	        });
 	        toHeight = dom.height();
-	        TweenLite.to(phaseButton, t, buttonNormal);
+	        TweenLite.to(phaseButton, halfT, buttonNormal);
 	        TweenLite.fromTo(dom, t, {
 	          height: fromHeight
 	        }, {
@@ -63700,7 +63690,7 @@
 	        TweenLite.set(dom, {
 	          height: 'auto'
 	        });
-	        TweenLite.to(phaseButton, t, buttonMinimal);
+	        TweenLite.to(phaseButton, halfT, buttonMinimal);
 	        iconText = dom.find('i.fa + span.text');
 	        TweenLite.to(iconText, halfT, {
 	          alpha: 0,
@@ -63721,7 +63711,7 @@
 	          ease: ease
 	        });
 	      case 2:
-	        TweenLite.to(phaseButton, t, buttonFolded);
+	        TweenLite.to(phaseButton, halfT, buttonFolded);
 	        return TweenLite.to(dom, t, {
 	          height: sectionFoldHeight,
 	          borderBottom: borderBottom1,
@@ -64117,6 +64107,17 @@
 	    this.videoTag.muted = true;
 	  }
 	
+	  EnvironmentMap.prototype.toggleVisibility = function(bool) {
+	    var o, t;
+	    t = 0.2;
+	    o = {
+	      autoAlpha: bool ? 0.5 : 0,
+	      display: bool ? 'block' : 'none'
+	    };
+	    TweenLite.to(this.videoTag, t, o);
+	    return TweenLite.to(this.canvas, t, o);
+	  };
+	
 	  EnvironmentMap.prototype.updateTexture = function() {
 	    return this.texture.needsUpdate = true;
 	  };
@@ -64308,6 +64309,8 @@
 	    var ref, ref1, ref2;
 	    this.canvas = (ref = arg.canvas) != null ? ref : document.createElement('canvas'), this.width = (ref1 = arg.width) != null ? ref1 : 1024, this.height = (ref2 = arg.height) != null ? ref2 : 512, this.backgroundColor = arg.backgroundColor;
 	    this.context = this.canvas.getContext("2d");
+	    this.width = this.canvas.width;
+	    this.height = this.canvas.height;
 	    this.mouseEventManager = MouseUtils.bind({
 	      dom: this.canvas,
 	      down: (function(_this) {
@@ -64492,7 +64495,11 @@
 	
 	  DrawPad.prototype.onMouseMove = function(evt) {
 	    var pos;
-	    pos = MouseUtils.getPos(evt.target, evt.clientX, evt.clientY);
+	    pos = MouseUtils.getRelativePos(evt.target, evt.clientX, evt.clientY);
+	    pos = {
+	      x: pos.x * this.width,
+	      y: pos.y * this.height
+	    };
 	    this.cursorTo(pos.x, pos.y);
 	    if (!this.drawing) {
 	      return;
@@ -64524,10 +64531,10 @@
 	    size = this.brushSize * 2;
 	    x = x - this.brushSize;
 	    y = y - this.brushSize;
-	    this.cursor.css({
-	      left: x,
-	      top: y,
-	      'border-color': "" + (this.brushColor.getStyle()),
+	    TweenLite.set(this.cursor, {
+	      x: x,
+	      y: y,
+	      borderColor: this.brushColor.getStyle(),
 	      width: size,
 	      height: size
 	    });
@@ -64538,8 +64545,7 @@
 	
 	  DrawPad.prototype.setupCursor = function() {
 	    this.cursor = $('<div class="cursor"></div>');
-	    $(this.canvas).addClass('hideCursor');
-	    return $(this.canvas).parent().append(this.cursor);
+	    return $(this.canvas).addClass('hideCursor').parent().append(this.cursor);
 	  };
 	
 	  DrawPad.prototype.showDebugInterface = function(gui) {
