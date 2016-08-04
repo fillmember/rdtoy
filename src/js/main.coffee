@@ -1,6 +1,7 @@
+gsap = require 'gsap'
 window.THREE = THREE = require 'three'
-$ = require 'jquery'
-
+window.$ = $ = require 'jquery'
+window.UI = UI = require './utils/InterfaceUtils.coffee'
 MouseUtils = require './utils/MouseUtils'
 ReactiveDiffusionSimulator = require './ReactiveDiffusionSimulator'
 EnvironmentMap = require './EnvironmentMap'
@@ -37,9 +38,6 @@ setCanvasSize = (w,h) ->
 		.height ready.height
 
 setCanvasSize 512 , 512
-
-# GUI
-UI = require './utils/InterfaceUtils'
 
 # #######################
 # Objects, Queries

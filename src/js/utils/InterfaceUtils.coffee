@@ -101,18 +101,80 @@ lib.section = ({
 		classes: 'section-minimize-button'
 		name: 'minimize'
 		icon: 'fa-angle-up'
-	dom_minimal = 'minimal'
-	dom_minimized = 'minimized'
+	# Animation Setting
+	t = 0.75
+	halfT = t / 2
+	ease = Power2.easeInOut
+	# Styles
+	buttonNormal  = rotationZ :    0 , y : 0.0 , ease : ease
+	buttonMinimal = rotationZ :  -90 , y : 2.5 , ease : ease
+	buttonFolded  = rotationZ : -180 , y : 5.0 , ease : ease
+	sectionFoldHeight = 24
+	sectionHeaderFoldHeight = 14
+	borderBottom0 = '0px solid #CCC'
+	borderBottom1 = '1px solid #CCC'
+	iconTextFoldHeight = 3.5
+	sliderLabelNormalWidth = '31.2%'
+	sliderLabelMinimalWidth = '10%'
+	# Phase
+	phase = 0
+	# 0 = normal
+	# 1 = minimal
+	# 2 = fold
 	phaseButton.click ->
-		if dom.hasClass dom_minimized
-			phaseButton.css 'transform' , 'rotateZ(0)'
-			dom.removeClass dom_minimal
-			dom.removeClass dom_minimized
-		else if dom.hasClass dom_minimal
-			phaseButton.css 'transform' , 'rotateZ(180deg)'
-			dom.addClass dom_minimized
-		else
-			dom.addClass dom_minimal
+		phase = (phase+1) % 3
+		switch phase
+			when 0
+				sectionHeader = dom.find('.sectionHeader')
+				sliderLabel = dom.find('.sliderLabel')
+				# get height
+				TweenLite.set sectionHeader , {height:'auto'}
+				iconText = dom.find('i.fa + span.text')
+					.each ->
+						$this = $(this)
+						$this.data 'foldHeight' , $this.height()
+						TweenLite.set this , height : 'auto'
+						$this.data 'normalHeight' , $this.height()
+				fromHeight = dom.height()
+				TweenLite.set dom , {height: 'auto'}
+				toHeight = dom.height()
+				# animation
+				TweenLite.to phaseButton , t , buttonNormal
+				TweenLite.fromTo dom , t , {height: fromHeight} , {
+					height:toHeight
+					borderBottom: borderBottom0
+					ease : ease
+				}
+				iconText.each ->
+					$this = $ this
+					TweenLite.fromTo this , halfT , {
+						height: $this.data('foldHeight')
+					} , {
+						height: $this.data('normalHeight')
+						alpha: 1
+						scale: 1
+						ease : ease
+					}
+				TweenLite.to sliderLabel , halfT , width: sliderLabelNormalWidth
+			when 1
+				TweenLite.set dom , height : 'auto'
+				TweenLite.to phaseButton , t , buttonMinimal
+				#
+				iconText = dom.find('i.fa + span.text')
+				TweenLite.to iconText , halfT , {alpha: 0, scale: 0, height: iconTextFoldHeight , ease : ease}
+				#
+				sectionHeader = dom.find('.sectionHeader')
+				TweenLite.to sectionHeader , halfT , {height: sectionHeaderFoldHeight, ease : ease}
+				#
+				sliderLabel = dom.find('.sliderLabel')
+				TweenLite.fromTo sliderLabel , halfT , {width: sliderLabelNormalWidth} , {width: sliderLabelMinimalWidth , ease : ease}
+			when 2
+				TweenLite.to phaseButton , t , buttonFolded
+				TweenLite.to dom , t , {
+					height : sectionFoldHeight
+					borderBottom : borderBottom1
+					ease : ease
+				}
 	child.unshift phaseButton
 	child.unshift @sectionHeader
 		icon: icon

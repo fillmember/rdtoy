@@ -1,7 +1,6 @@
 require './../vendor/whammy/whammy.js'
 require './../vendor/ccapture/CCapture.js'
 EventEmitter = require('events').EventEmitter
-UI = require './utils/InterfaceUtils'
 
 class Exporter
 	constructor: (args) ->

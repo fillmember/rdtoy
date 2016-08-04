@@ -1,9 +1,4 @@
-THREE = require 'three'
-$ = require 'jquery'
-gsap = require 'gsap'
 require('./../vendor/gradientui')($)
-
-UI = require './utils/InterfaceUtils'
 
 defaultValues = [
 					[0.00, '#FFFFFF']

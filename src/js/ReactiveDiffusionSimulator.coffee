@@ -1,9 +1,6 @@
 EventEmitter = require('events').EventEmitter
-THREE = require 'three'
-$ = require 'jquery'
 DefaultPresentMaterial = require './GradientMappingMaterial'
 TextureHelper = require './helpers/TextureHelper'
-UI = require './utils/InterfaceUtils'
 
 brushOff = new THREE.Vector2 -1 , -1
 plane = new THREE.PlaneGeometry 1 , 1

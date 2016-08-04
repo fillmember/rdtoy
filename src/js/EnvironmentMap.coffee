@@ -1,5 +1,3 @@
-THREE = require 'three'
-$ = require 'jquery'
 
 DrawPad = require './DrawPad'
 UI = require './utils/InterfaceUtils'
@@ -22,6 +20,7 @@ class EnvironmentMap extends DrawPad
 		@video = false
 		@videoTag = options.video or document.createElement('video')
 		@videoTag.ontimeupdate = => @updateTexture()
+		@videoTag.muted = true
 
 	updateTexture: -> @texture.needsUpdate = true
 
@@ -88,28 +87,6 @@ class EnvironmentMap extends DrawPad
 							if p.kill? then sliders.kill.find('input[type=range]').prop('value',p.kill).trigger('change')
 							if p.step? then sliders.step.find('input[type=range]').prop('value',p.step).trigger('change')
 			]
-			# UI.item [
-			# 	UI.btnGroup [
-			# 		UI.button
-			# 			name: ''
-			# 			icon: 'fa-bolt'
-			# 			checkbox: true
-			# 			checked: true
-			# 			action: (t) => sliders.kill.toggle t
-			# 		UI.button
-			# 			name: ''
-			# 			icon: 'fa-plus-circle'
-			# 			checkbox: true
-			# 			checked: true
-			# 			action: (t) => sliders.feed.toggle t
-			# 		UI.button
-			# 			name: ''
-			# 			icon: 'fa-search'
-			# 			checkbox: true
-			# 			checked: true
-			# 			action: (t) => sliders.step.toggle t
-			# 	]
-			# ]
 			sliders.feed
 			sliders.kill
 			sliders.step
