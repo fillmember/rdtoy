@@ -21,6 +21,10 @@ button.pulsing.red,
   -ms-animation: pulse-red-background-color 1s linear infinite alternate;
   animation: pulse-red-background-color 1s linear infinite alternate;
 }
+button.priority,
+.button.priority {
+  background-color: #bfc;
+}
 button,
 .button {
   text-align: center;
