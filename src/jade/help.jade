@@ -1,0 +1,43 @@
+doctype html
+html
+	head
+		meta(http-equiv="Content-Type", content="text/html; charset=utf-8")
+		link(rel="stylesheet", href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css")
+		link(rel="stylesheet", href="https://fonts.googleapis.com/css?family=Open+Sans:300,400")
+		link(rel='stylesheet', href='css/help.css')
+		title Help - Reactive Diffusion Playground by fillmember
+	body
+		div#wrapper
+			
+			p
+				a(href="index.html")
+					i.fa.fa-arrow-left &nbsp;
+					span back to playground
+
+			h1 Reactive Diffusion Playground
+			p an interactive web toy by 
+				a(href="http://fillmember.net") @fillmember
+			
+			h2 What is this?
+			p This is one of those celluar automata app. The Gray-Scott system used in this app is described here: 
+				a(href="http://www.karlsims.com/rd.html") http://www.karlsims.com/rd.html
+				br
+				a(href="http://mrob.com/pub/comp/xmorphia/") http://mrob.com/pub/comp/xmorphia/
+			
+			h2 Components
+
+			p There're 3 key components in current app: Simulation, Environment, and Export. 
+			
+			h3 Simulation
+			p In this area the Reactive Diffusion simulation can be controlled. Start by just drawing on the canvas. 
+			p Besides changing the speed, general kill/feed rate and step size, here you can also play with the gradient mapping of the simulation. 
+
+			h3 Environment
+			p Environment is where you can control environmental parameters such as Feed Rate, Kill Rate, and Step Size. Areas with different settings can help create very complex design. You can use the brush to draw on the map, or select an image or a video from your computer. 
+			p There are presets of parameters you can use to fill or draw on the environment map. 
+
+			h3 Export
+			p Export is in charge of exporting images from this web app. 
+			p The Buffer is the sequence waiting to be exported. Every captured image goes in to the buffer. 
+
+		script(type='text/javascript', src='js/Main.js')

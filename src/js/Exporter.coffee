@@ -67,12 +67,18 @@ class Exporter
 									@simulator.setRunning false
 									@update()
 						@UI.getWebMButton = UI.button
+							link: true
 							icon: 'fa-share-square-o'
 							name: 'save webm'
-							action: =>
+							action: (btn) =>
 								blob = Whammy.fromImageArray @data , 30 , false
 								url = URL.createObjectURL blob
-								window.open url
+								#
+								# window.open url
+								timestamp = String( Date.now() ).substr( -6 , 6 )
+								filename = "rdplay-#{timestamp}"
+								btn.prop 'download' , "#{filename}.webm"
+								btn.prop 'href' , url
 						@UI.clearBufferButton = UI.button
 							icon: 'fa-trash-o'
 							name: 'clear buffer'

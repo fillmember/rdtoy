@@ -1,0 +1,64 @@
+@import 'normalize.css'
+@import './components/typography.styl'
+
+body
+	margin unit
+	background-color #EEE
+
+unit = 24px
+unit-half = unit * 0.5
+
+#wrapper
+	width 30em
+	margin unit auto
+	
+	// background repeating-linear-gradient(180deg, #FFF 0, #CCC 1px, #FFF 24px)
+	
+	h1
+	h2
+	h3
+	p
+		position relative
+		margin 0 0 unit 0
+		padding 0
+		line-height unit
+
+svg
+	width 100%
+	border 1px solid red
+
+a
+	position relative
+
+i.fa
+	position absolute
+	top 3px
+	left -0.75 * unit
+
+blockquote
+	margin unit-half
+	padding unit-half
+	border 1px solid red
+
+h1
+h2
+h3
+	font-weight 400
+	text-transform capitalize
+	&:after
+	i.fa
+		font-weight 300
+		font-size 10px
+		color #CCC
+		letter-spacing 1px
+		
+		position absolute
+		top 0
+		left -0.8 * unit
+
+h1:after
+	content 'h1'
+h2:after
+	content 'h2'
+h3:after
+	content 'h3'

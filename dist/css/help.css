@@ -1,0 +1,83 @@
+@import 'normalize.css';
+body {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 12px;
+}
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-weight: normal;
+  text-transform: lowercase;
+}
+#controls .sectionHeader {
+  font-size: 1.17em;
+}
+#controls .itemHeader,
+#controls .itemLabel {
+  font-size: 1em;
+}
+body {
+  margin: unit;
+  background-color: #eee;
+}
+#wrapper {
+  width: 30em;
+  margin: 24px auto;
+}
+#wrapper h1,
+#wrapper h2,
+#wrapper h3,
+#wrapper p {
+  position: relative;
+  margin: 0 0 24px 0;
+  padding: 0;
+  line-height: 24px;
+}
+svg {
+  width: 100%;
+  border: 1px solid #f00;
+}
+a {
+  position: relative;
+}
+i.fa {
+  position: absolute;
+  top: 3px;
+  left: -18px;
+}
+blockquote {
+  margin: 12px;
+  padding: 12px;
+  border: 1px solid #f00;
+}
+h1,
+h2,
+h3 {
+  font-weight: 400;
+  text-transform: capitalize;
+}
+h1:after,
+h2:after,
+h3:after,
+h1 i.fa,
+h2 i.fa,
+h3 i.fa {
+  font-weight: 300;
+  font-size: 10px;
+  color: #ccc;
+  letter-spacing: 1px;
+  position: absolute;
+  top: 0;
+  left: -19.200000000000003px;
+}
+h1:after {
+  content: 'h1';
+}
+h2:after {
+  content: 'h2';
+}
+h3:after {
+  content: 'h3';
+}
