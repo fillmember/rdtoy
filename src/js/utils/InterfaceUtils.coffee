@@ -1,5 +1,3 @@
-$ = require 'jquery'
-
 lib = {}
 
 template = 
@@ -16,7 +14,7 @@ template =
 	toggle: '<input type="checkbox" class="toggle" />'
 	label: '<label />'
 
-containerFactory = (html) ->
+factory = (html) ->
 	return (->
 		# args = id , classes , child
 		args = Array.prototype.slice.call arguments
@@ -33,22 +31,18 @@ containerFactory = (html) ->
 	)
 
 # container type
-lib.itemHeader = containerFactory template.itemHeader
-lib.item       = containerFactory template.item
-lib.col        = containerFactory template.col
-lib.btnGroup   = containerFactory template.btnGroup
-lib.spanText   = containerFactory template.spanText
-lib.itemLabel  = containerFactory template.itemLabel
-lib._button    = containerFactory template.button
-lib._aButton   = containerFactory template.aButton
+lib.itemHeader = factory template.itemHeader
+lib.item       = factory template.item
+lib.col        = factory template.col
+lib.btnGroup   = factory template.btnGroup
+lib.spanText   = factory template.spanText
+lib.itemLabel  = factory template.itemLabel
+lib._button    = factory template.button
+lib._aButton   = factory template.aButton
 
 # non-container type
-lib.icon = (icon) ->
-	$ template.icon
-		.addClass icon
-lib.label = (id) ->
-	$ template.label
-		.prop 'for' , id
+lib.icon = (icon) -> $(template.icon).addClass icon
+lib.label = (id) -> $(template.label).prop 'for' , id
 
 lib.animate =
 	sliderText: ({

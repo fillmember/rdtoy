@@ -50,15 +50,15 @@
 	
 	window.THREE = THREE = __webpack_require__(3);
 	
-	window.$ = $ = __webpack_require__(4);
+	window.$ = window.jQuery = $ = __webpack_require__(4);
 	
 	window.UI = UI = __webpack_require__(5);
 	
-	MouseUtils = __webpack_require__(6);
+	MouseUtils = __webpack_require__(11);
 	
-	ReactiveDiffusionSimulator = __webpack_require__(7);
+	ReactiveDiffusionSimulator = __webpack_require__(12);
 	
-	EnvironmentMap = __webpack_require__(22);
+	EnvironmentMap = __webpack_require__(25);
 	
 	ready = new ReactiveDiffusionSimulator({
 	  canvas: $('#readyCanvas').get(0)
@@ -265,7 +265,7 @@
 	
 	envmap.setupInterface($sectionEnv, $controls);
 	
-	Exporter = __webpack_require__(26);
+	Exporter = __webpack_require__(29);
 	
 	exporter = new Exporter({
 	  simulator: ready,
@@ -59660,11 +59660,9 @@
 
 /***/ },
 /* 5 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	var $, containerFactory, lib, template;
-	
-	$ = __webpack_require__(4);
+	var factory, lib, template;
 	
 	lib = {};
 	
@@ -59683,7 +59681,7 @@
 	  label: '<label />'
 	};
 	
-	containerFactory = function(html) {
+	factory = function(html) {
 	  return (function() {
 	    var args, child, classes, dom, id;
 	    args = Array.prototype.slice.call(arguments);
@@ -59704,21 +59702,21 @@
 	  });
 	};
 	
-	lib.itemHeader = containerFactory(template.itemHeader);
+	lib.itemHeader = factory(template.itemHeader);
 	
-	lib.item = containerFactory(template.item);
+	lib.item = factory(template.item);
 	
-	lib.col = containerFactory(template.col);
+	lib.col = factory(template.col);
 	
-	lib.btnGroup = containerFactory(template.btnGroup);
+	lib.btnGroup = factory(template.btnGroup);
 	
-	lib.spanText = containerFactory(template.spanText);
+	lib.spanText = factory(template.spanText);
 	
-	lib.itemLabel = containerFactory(template.itemLabel);
+	lib.itemLabel = factory(template.itemLabel);
 	
-	lib._button = containerFactory(template.button);
+	lib._button = factory(template.button);
 	
-	lib._aButton = containerFactory(template.aButton);
+	lib._aButton = factory(template.aButton);
 	
 	lib.icon = function(icon) {
 	  return $(template.icon).addClass(icon);
@@ -60116,7 +60114,318 @@
 
 
 /***/ },
-/* 6 */
+/* 6 */,
+/* 7 */,
+/* 8 */,
+/* 9 */
+/***/ function(module, exports) {
+
+	/*
+		MIT License http://www.opensource.org/licenses/mit-license.php
+		Author Tobias Koppers @sokra
+	*/
+	// css base code, injected by the css-loader
+	module.exports = function() {
+		var list = [];
+	
+		// return the list of modules as css string
+		list.toString = function toString() {
+			var result = [];
+			for(var i = 0; i < this.length; i++) {
+				var item = this[i];
+				if(item[2]) {
+					result.push("@media " + item[2] + "{" + item[1] + "}");
+				} else {
+					result.push(item[1]);
+				}
+			}
+			return result.join("");
+		};
+	
+		// import a list of modules into the list
+		list.i = function(modules, mediaQuery) {
+			if(typeof modules === "string")
+				modules = [[null, modules, ""]];
+			var alreadyImportedModules = {};
+			for(var i = 0; i < this.length; i++) {
+				var id = this[i][0];
+				if(typeof id === "number")
+					alreadyImportedModules[id] = true;
+			}
+			for(i = 0; i < modules.length; i++) {
+				var item = modules[i];
+				// skip already imported module
+				// this implementation is not 100% perfect for weird media query combinations
+				//  when a module is imported multiple times with different media queries.
+				//  I hope this will never occur (Hey this way we have smaller bundles)
+				if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+					if(mediaQuery && !item[2]) {
+						item[2] = mediaQuery;
+					} else if(mediaQuery) {
+						item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+					}
+					list.push(item);
+				}
+			}
+		};
+		return list;
+	};
+
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/*
+		MIT License http://www.opensource.org/licenses/mit-license.php
+		Author Tobias Koppers @sokra
+	*/
+	var stylesInDom = {},
+		memoize = function(fn) {
+			var memo;
+			return function () {
+				if (typeof memo === "undefined") memo = fn.apply(this, arguments);
+				return memo;
+			};
+		},
+		isOldIE = memoize(function() {
+			return /msie [6-9]\b/.test(window.navigator.userAgent.toLowerCase());
+		}),
+		getHeadElement = memoize(function () {
+			return document.head || document.getElementsByTagName("head")[0];
+		}),
+		singletonElement = null,
+		singletonCounter = 0,
+		styleElementsInsertedAtTop = [];
+	
+	module.exports = function(list, options) {
+		if(true) {
+			if(typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
+		}
+	
+		options = options || {};
+		// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
+		// tags it will allow on a page
+		if (typeof options.singleton === "undefined") options.singleton = isOldIE();
+	
+		// By default, add <style> tags to the bottom of <head>.
+		if (typeof options.insertAt === "undefined") options.insertAt = "bottom";
+	
+		var styles = listToStyles(list);
+		addStylesToDom(styles, options);
+	
+		return function update(newList) {
+			var mayRemove = [];
+			for(var i = 0; i < styles.length; i++) {
+				var item = styles[i];
+				var domStyle = stylesInDom[item.id];
+				domStyle.refs--;
+				mayRemove.push(domStyle);
+			}
+			if(newList) {
+				var newStyles = listToStyles(newList);
+				addStylesToDom(newStyles, options);
+			}
+			for(var i = 0; i < mayRemove.length; i++) {
+				var domStyle = mayRemove[i];
+				if(domStyle.refs === 0) {
+					for(var j = 0; j < domStyle.parts.length; j++)
+						domStyle.parts[j]();
+					delete stylesInDom[domStyle.id];
+				}
+			}
+		};
+	}
+	
+	function addStylesToDom(styles, options) {
+		for(var i = 0; i < styles.length; i++) {
+			var item = styles[i];
+			var domStyle = stylesInDom[item.id];
+			if(domStyle) {
+				domStyle.refs++;
+				for(var j = 0; j < domStyle.parts.length; j++) {
+					domStyle.parts[j](item.parts[j]);
+				}
+				for(; j < item.parts.length; j++) {
+					domStyle.parts.push(addStyle(item.parts[j], options));
+				}
+			} else {
+				var parts = [];
+				for(var j = 0; j < item.parts.length; j++) {
+					parts.push(addStyle(item.parts[j], options));
+				}
+				stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
+			}
+		}
+	}
+	
+	function listToStyles(list) {
+		var styles = [];
+		var newStyles = {};
+		for(var i = 0; i < list.length; i++) {
+			var item = list[i];
+			var id = item[0];
+			var css = item[1];
+			var media = item[2];
+			var sourceMap = item[3];
+			var part = {css: css, media: media, sourceMap: sourceMap};
+			if(!newStyles[id])
+				styles.push(newStyles[id] = {id: id, parts: [part]});
+			else
+				newStyles[id].parts.push(part);
+		}
+		return styles;
+	}
+	
+	function insertStyleElement(options, styleElement) {
+		var head = getHeadElement();
+		var lastStyleElementInsertedAtTop = styleElementsInsertedAtTop[styleElementsInsertedAtTop.length - 1];
+		if (options.insertAt === "top") {
+			if(!lastStyleElementInsertedAtTop) {
+				head.insertBefore(styleElement, head.firstChild);
+			} else if(lastStyleElementInsertedAtTop.nextSibling) {
+				head.insertBefore(styleElement, lastStyleElementInsertedAtTop.nextSibling);
+			} else {
+				head.appendChild(styleElement);
+			}
+			styleElementsInsertedAtTop.push(styleElement);
+		} else if (options.insertAt === "bottom") {
+			head.appendChild(styleElement);
+		} else {
+			throw new Error("Invalid value for parameter 'insertAt'. Must be 'top' or 'bottom'.");
+		}
+	}
+	
+	function removeStyleElement(styleElement) {
+		styleElement.parentNode.removeChild(styleElement);
+		var idx = styleElementsInsertedAtTop.indexOf(styleElement);
+		if(idx >= 0) {
+			styleElementsInsertedAtTop.splice(idx, 1);
+		}
+	}
+	
+	function createStyleElement(options) {
+		var styleElement = document.createElement("style");
+		styleElement.type = "text/css";
+		insertStyleElement(options, styleElement);
+		return styleElement;
+	}
+	
+	function createLinkElement(options) {
+		var linkElement = document.createElement("link");
+		linkElement.rel = "stylesheet";
+		insertStyleElement(options, linkElement);
+		return linkElement;
+	}
+	
+	function addStyle(obj, options) {
+		var styleElement, update, remove;
+	
+		if (options.singleton) {
+			var styleIndex = singletonCounter++;
+			styleElement = singletonElement || (singletonElement = createStyleElement(options));
+			update = applyToSingletonTag.bind(null, styleElement, styleIndex, false);
+			remove = applyToSingletonTag.bind(null, styleElement, styleIndex, true);
+		} else if(obj.sourceMap &&
+			typeof URL === "function" &&
+			typeof URL.createObjectURL === "function" &&
+			typeof URL.revokeObjectURL === "function" &&
+			typeof Blob === "function" &&
+			typeof btoa === "function") {
+			styleElement = createLinkElement(options);
+			update = updateLink.bind(null, styleElement);
+			remove = function() {
+				removeStyleElement(styleElement);
+				if(styleElement.href)
+					URL.revokeObjectURL(styleElement.href);
+			};
+		} else {
+			styleElement = createStyleElement(options);
+			update = applyToTag.bind(null, styleElement);
+			remove = function() {
+				removeStyleElement(styleElement);
+			};
+		}
+	
+		update(obj);
+	
+		return function updateStyle(newObj) {
+			if(newObj) {
+				if(newObj.css === obj.css && newObj.media === obj.media && newObj.sourceMap === obj.sourceMap)
+					return;
+				update(obj = newObj);
+			} else {
+				remove();
+			}
+		};
+	}
+	
+	var replaceText = (function () {
+		var textStore = [];
+	
+		return function (index, replacement) {
+			textStore[index] = replacement;
+			return textStore.filter(Boolean).join('\n');
+		};
+	})();
+	
+	function applyToSingletonTag(styleElement, index, remove, obj) {
+		var css = remove ? "" : obj.css;
+	
+		if (styleElement.styleSheet) {
+			styleElement.styleSheet.cssText = replaceText(index, css);
+		} else {
+			var cssNode = document.createTextNode(css);
+			var childNodes = styleElement.childNodes;
+			if (childNodes[index]) styleElement.removeChild(childNodes[index]);
+			if (childNodes.length) {
+				styleElement.insertBefore(cssNode, childNodes[index]);
+			} else {
+				styleElement.appendChild(cssNode);
+			}
+		}
+	}
+	
+	function applyToTag(styleElement, obj) {
+		var css = obj.css;
+		var media = obj.media;
+	
+		if(media) {
+			styleElement.setAttribute("media", media)
+		}
+	
+		if(styleElement.styleSheet) {
+			styleElement.styleSheet.cssText = css;
+		} else {
+			while(styleElement.firstChild) {
+				styleElement.removeChild(styleElement.firstChild);
+			}
+			styleElement.appendChild(document.createTextNode(css));
+		}
+	}
+	
+	function updateLink(linkElement, obj) {
+		var css = obj.css;
+		var sourceMap = obj.sourceMap;
+	
+		if(sourceMap) {
+			// http://stackoverflow.com/a/26603875
+			css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
+		}
+	
+		var blob = new Blob([css], { type: "text/css" });
+	
+		var oldSrc = linkElement.href;
+	
+		linkElement.href = URL.createObjectURL(blob);
+	
+		if(oldSrc)
+			URL.revokeObjectURL(oldSrc);
+	}
+
+
+/***/ },
+/* 11 */
 /***/ function(module, exports) {
 
 	var MouseEventManager, defaultFunction, lib;
@@ -60225,16 +60534,16 @@
 
 
 /***/ },
-/* 7 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var DefaultPresentMaterial, EventEmitter, ReactiveDiffusionSimulator, TextureHelper, brushOff, camPosition, maxTextureSize, plane, renderTargetOptions;
 	
-	EventEmitter = __webpack_require__(8).EventEmitter;
+	EventEmitter = __webpack_require__(13).EventEmitter;
 	
-	DefaultPresentMaterial = __webpack_require__(9);
+	DefaultPresentMaterial = __webpack_require__(14);
 	
-	TextureHelper = __webpack_require__(20);
+	TextureHelper = __webpack_require__(23);
 	
 	brushOff = new THREE.Vector2(-1, -1);
 	
@@ -60314,8 +60623,8 @@
 	    this.textureHelper.setRenderTarget(this.width, this.height, renderTargetOptions);
 	    this.tex1 = this.textureHelper.getSolidRenderTarget(1, 1, 0);
 	    this.tex2 = this.textureHelper.getSolidRenderTarget(1, 1, 0);
-	    vShader = __webpack_require__(18);
-	    fShader = __webpack_require__(21);
+	    vShader = __webpack_require__(21);
+	    fShader = __webpack_require__(24);
 	    this.mat = new THREE.ShaderMaterial({
 	      uniforms: this.uniforms,
 	      vertexShader: vShader,
@@ -60559,7 +60868,7 @@
 
 
 /***/ },
-/* 8 */
+/* 13 */
 /***/ function(module, exports) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -60867,12 +61176,12 @@
 
 
 /***/ },
-/* 9 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var GradientMappingMaterial, defaultValues;
 	
-	__webpack_require__(10)($);
+	__webpack_require__(15)($);
 	
 	defaultValues = [[0.00, '#FFFFFF'], [0.18, '#CCCCCC'], [0.24, '#FFFFFF'], [0.30, '#0000FF'], [1.00, '#000000']];
 	
@@ -60906,8 +61215,8 @@
 	    };
 	    this.material = new THREE.ShaderMaterial({
 	      uniforms: this.uniforms,
-	      vertexShader: __webpack_require__(18),
-	      fragmentShader: __webpack_require__(19)
+	      vertexShader: __webpack_require__(21),
+	      fragmentShader: __webpack_require__(22)
 	    });
 	  }
 	
@@ -61037,14 +61346,14 @@
 
 
 /***/ },
-/* 10 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
-	__webpack_require__(11)
+	__webpack_require__(16)
 	
 	module.exports = function($) {
 	
-	    __webpack_require__(15)($)
+	    __webpack_require__(18)($)
 	
 	    window.dami = $
 	
@@ -61273,16 +61582,16 @@
 	}
 
 /***/ },
-/* 11 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 	
 	// load the styles
-	var content = __webpack_require__(12);
+	var content = __webpack_require__(17);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(14)(content, {});
+	var update = __webpack_require__(10)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -61299,10 +61608,10 @@
 	}
 
 /***/ },
-/* 12 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(13)();
+	exports = module.exports = __webpack_require__(9)();
 	// imports
 	
 	
@@ -61313,315 +61622,7 @@
 
 
 /***/ },
-/* 13 */
-/***/ function(module, exports) {
-
-	/*
-		MIT License http://www.opensource.org/licenses/mit-license.php
-		Author Tobias Koppers @sokra
-	*/
-	// css base code, injected by the css-loader
-	module.exports = function() {
-		var list = [];
-	
-		// return the list of modules as css string
-		list.toString = function toString() {
-			var result = [];
-			for(var i = 0; i < this.length; i++) {
-				var item = this[i];
-				if(item[2]) {
-					result.push("@media " + item[2] + "{" + item[1] + "}");
-				} else {
-					result.push(item[1]);
-				}
-			}
-			return result.join("");
-		};
-	
-		// import a list of modules into the list
-		list.i = function(modules, mediaQuery) {
-			if(typeof modules === "string")
-				modules = [[null, modules, ""]];
-			var alreadyImportedModules = {};
-			for(var i = 0; i < this.length; i++) {
-				var id = this[i][0];
-				if(typeof id === "number")
-					alreadyImportedModules[id] = true;
-			}
-			for(i = 0; i < modules.length; i++) {
-				var item = modules[i];
-				// skip already imported module
-				// this implementation is not 100% perfect for weird media query combinations
-				//  when a module is imported multiple times with different media queries.
-				//  I hope this will never occur (Hey this way we have smaller bundles)
-				if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
-					if(mediaQuery && !item[2]) {
-						item[2] = mediaQuery;
-					} else if(mediaQuery) {
-						item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
-					}
-					list.push(item);
-				}
-			}
-		};
-		return list;
-	};
-
-
-/***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/*
-		MIT License http://www.opensource.org/licenses/mit-license.php
-		Author Tobias Koppers @sokra
-	*/
-	var stylesInDom = {},
-		memoize = function(fn) {
-			var memo;
-			return function () {
-				if (typeof memo === "undefined") memo = fn.apply(this, arguments);
-				return memo;
-			};
-		},
-		isOldIE = memoize(function() {
-			return /msie [6-9]\b/.test(window.navigator.userAgent.toLowerCase());
-		}),
-		getHeadElement = memoize(function () {
-			return document.head || document.getElementsByTagName("head")[0];
-		}),
-		singletonElement = null,
-		singletonCounter = 0,
-		styleElementsInsertedAtTop = [];
-	
-	module.exports = function(list, options) {
-		if(true) {
-			if(typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
-		}
-	
-		options = options || {};
-		// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
-		// tags it will allow on a page
-		if (typeof options.singleton === "undefined") options.singleton = isOldIE();
-	
-		// By default, add <style> tags to the bottom of <head>.
-		if (typeof options.insertAt === "undefined") options.insertAt = "bottom";
-	
-		var styles = listToStyles(list);
-		addStylesToDom(styles, options);
-	
-		return function update(newList) {
-			var mayRemove = [];
-			for(var i = 0; i < styles.length; i++) {
-				var item = styles[i];
-				var domStyle = stylesInDom[item.id];
-				domStyle.refs--;
-				mayRemove.push(domStyle);
-			}
-			if(newList) {
-				var newStyles = listToStyles(newList);
-				addStylesToDom(newStyles, options);
-			}
-			for(var i = 0; i < mayRemove.length; i++) {
-				var domStyle = mayRemove[i];
-				if(domStyle.refs === 0) {
-					for(var j = 0; j < domStyle.parts.length; j++)
-						domStyle.parts[j]();
-					delete stylesInDom[domStyle.id];
-				}
-			}
-		};
-	}
-	
-	function addStylesToDom(styles, options) {
-		for(var i = 0; i < styles.length; i++) {
-			var item = styles[i];
-			var domStyle = stylesInDom[item.id];
-			if(domStyle) {
-				domStyle.refs++;
-				for(var j = 0; j < domStyle.parts.length; j++) {
-					domStyle.parts[j](item.parts[j]);
-				}
-				for(; j < item.parts.length; j++) {
-					domStyle.parts.push(addStyle(item.parts[j], options));
-				}
-			} else {
-				var parts = [];
-				for(var j = 0; j < item.parts.length; j++) {
-					parts.push(addStyle(item.parts[j], options));
-				}
-				stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
-			}
-		}
-	}
-	
-	function listToStyles(list) {
-		var styles = [];
-		var newStyles = {};
-		for(var i = 0; i < list.length; i++) {
-			var item = list[i];
-			var id = item[0];
-			var css = item[1];
-			var media = item[2];
-			var sourceMap = item[3];
-			var part = {css: css, media: media, sourceMap: sourceMap};
-			if(!newStyles[id])
-				styles.push(newStyles[id] = {id: id, parts: [part]});
-			else
-				newStyles[id].parts.push(part);
-		}
-		return styles;
-	}
-	
-	function insertStyleElement(options, styleElement) {
-		var head = getHeadElement();
-		var lastStyleElementInsertedAtTop = styleElementsInsertedAtTop[styleElementsInsertedAtTop.length - 1];
-		if (options.insertAt === "top") {
-			if(!lastStyleElementInsertedAtTop) {
-				head.insertBefore(styleElement, head.firstChild);
-			} else if(lastStyleElementInsertedAtTop.nextSibling) {
-				head.insertBefore(styleElement, lastStyleElementInsertedAtTop.nextSibling);
-			} else {
-				head.appendChild(styleElement);
-			}
-			styleElementsInsertedAtTop.push(styleElement);
-		} else if (options.insertAt === "bottom") {
-			head.appendChild(styleElement);
-		} else {
-			throw new Error("Invalid value for parameter 'insertAt'. Must be 'top' or 'bottom'.");
-		}
-	}
-	
-	function removeStyleElement(styleElement) {
-		styleElement.parentNode.removeChild(styleElement);
-		var idx = styleElementsInsertedAtTop.indexOf(styleElement);
-		if(idx >= 0) {
-			styleElementsInsertedAtTop.splice(idx, 1);
-		}
-	}
-	
-	function createStyleElement(options) {
-		var styleElement = document.createElement("style");
-		styleElement.type = "text/css";
-		insertStyleElement(options, styleElement);
-		return styleElement;
-	}
-	
-	function createLinkElement(options) {
-		var linkElement = document.createElement("link");
-		linkElement.rel = "stylesheet";
-		insertStyleElement(options, linkElement);
-		return linkElement;
-	}
-	
-	function addStyle(obj, options) {
-		var styleElement, update, remove;
-	
-		if (options.singleton) {
-			var styleIndex = singletonCounter++;
-			styleElement = singletonElement || (singletonElement = createStyleElement(options));
-			update = applyToSingletonTag.bind(null, styleElement, styleIndex, false);
-			remove = applyToSingletonTag.bind(null, styleElement, styleIndex, true);
-		} else if(obj.sourceMap &&
-			typeof URL === "function" &&
-			typeof URL.createObjectURL === "function" &&
-			typeof URL.revokeObjectURL === "function" &&
-			typeof Blob === "function" &&
-			typeof btoa === "function") {
-			styleElement = createLinkElement(options);
-			update = updateLink.bind(null, styleElement);
-			remove = function() {
-				removeStyleElement(styleElement);
-				if(styleElement.href)
-					URL.revokeObjectURL(styleElement.href);
-			};
-		} else {
-			styleElement = createStyleElement(options);
-			update = applyToTag.bind(null, styleElement);
-			remove = function() {
-				removeStyleElement(styleElement);
-			};
-		}
-	
-		update(obj);
-	
-		return function updateStyle(newObj) {
-			if(newObj) {
-				if(newObj.css === obj.css && newObj.media === obj.media && newObj.sourceMap === obj.sourceMap)
-					return;
-				update(obj = newObj);
-			} else {
-				remove();
-			}
-		};
-	}
-	
-	var replaceText = (function () {
-		var textStore = [];
-	
-		return function (index, replacement) {
-			textStore[index] = replacement;
-			return textStore.filter(Boolean).join('\n');
-		};
-	})();
-	
-	function applyToSingletonTag(styleElement, index, remove, obj) {
-		var css = remove ? "" : obj.css;
-	
-		if (styleElement.styleSheet) {
-			styleElement.styleSheet.cssText = replaceText(index, css);
-		} else {
-			var cssNode = document.createTextNode(css);
-			var childNodes = styleElement.childNodes;
-			if (childNodes[index]) styleElement.removeChild(childNodes[index]);
-			if (childNodes.length) {
-				styleElement.insertBefore(cssNode, childNodes[index]);
-			} else {
-				styleElement.appendChild(cssNode);
-			}
-		}
-	}
-	
-	function applyToTag(styleElement, obj) {
-		var css = obj.css;
-		var media = obj.media;
-	
-		if(media) {
-			styleElement.setAttribute("media", media)
-		}
-	
-		if(styleElement.styleSheet) {
-			styleElement.styleSheet.cssText = css;
-		} else {
-			while(styleElement.firstChild) {
-				styleElement.removeChild(styleElement.firstChild);
-			}
-			styleElement.appendChild(document.createTextNode(css));
-		}
-	}
-	
-	function updateLink(linkElement, obj) {
-		var css = obj.css;
-		var sourceMap = obj.sourceMap;
-	
-		if(sourceMap) {
-			// http://stackoverflow.com/a/26603875
-			css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
-		}
-	
-		var blob = new Blob([css], { type: "text/css" });
-	
-		var oldSrc = linkElement.href;
-	
-		linkElement.href = URL.createObjectURL(blob);
-	
-		if(oldSrc)
-			URL.revokeObjectURL(oldSrc);
-	}
-
-
-/***/ },
-/* 15 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// Spectrum Colorpicker v1.8.0
@@ -61629,7 +61630,7 @@
 	// Author: Brian Grinstead
 	// License: MIT
 	
-	__webpack_require__(16)
+	__webpack_require__(19)
 	
 	module.exports = function($, undefined) {
 	    "use strict";
@@ -63939,16 +63940,16 @@
 	}
 
 /***/ },
-/* 16 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// style-loader: Adds some css to the DOM by adding a <style> tag
 	
 	// load the styles
-	var content = __webpack_require__(17);
+	var content = __webpack_require__(20);
 	if(typeof content === 'string') content = [[module.id, content, '']];
 	// add the styles to the DOM
-	var update = __webpack_require__(14)(content, {});
+	var update = __webpack_require__(10)(content, {});
 	if(content.locals) module.exports = content.locals;
 	// Hot Module Replacement
 	if(false) {
@@ -63965,10 +63966,10 @@
 	}
 
 /***/ },
-/* 17 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(13)();
+	exports = module.exports = __webpack_require__(9)();
 	// imports
 	
 	
@@ -63979,19 +63980,19 @@
 
 
 /***/ },
-/* 18 */
+/* 21 */
 /***/ function(module, exports) {
 
 	module.exports = "varying vec2 vUv;\n\nvoid main()\n{\n    vUv = uv;\n    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n}"
 
 /***/ },
-/* 19 */
+/* 22 */
 /***/ function(module, exports) {
 
 	module.exports = "varying vec2 vUv;\nuniform sampler2D tSource;\nuniform vec4 color1;\nuniform vec4 color2;\nuniform vec4 color3;\nuniform vec4 color4;\nuniform vec4 color5;\n\nvoid main() {\n\n    float value = texture2D(tSource, vUv).g;\n    float a;\n    vec3 col;\n    \n    if (value <= color1.a) { col = color1.rgb; }\n    if (value > color1.a && value <= color2.a) {\n        a   = (value - color1.a) / (color2.a - color1.a);\n        col = mix(color1.rgb, color2.rgb, a);\n    }\n    if (value > color2.a && value <= color3.a) {\n        a   = (value - color2.a) / (color3.a - color2.a);\n        col = mix(color2.rgb, color3.rgb, a);\n    }\n    if(value > color3.a && value <= color4.a) {\n        a   = (value - color3.a) / (color4.a - color3.a);\n        col = mix(color3.rgb, color4.rgb, a);\n    }\n    if(value > color4.a && value <= color5.a) {\n        a   = (value - color4.a) / (color5.a - color4.a);\n        col = mix(color4.rgb, color5.rgb, a);\n    }\n    if(value > color5.a) { col = color5.rgb; }\n    \n    gl_FragColor = vec4(col.r, col.g, col.b, 1.0);\n\n}"
 
 /***/ },
-/* 20 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var THREE, TextureHelper, constantMaterial, constantPlane, defaultHeight, defaultOptions, defaultWidth;
@@ -64098,24 +64099,24 @@
 
 
 /***/ },
-/* 21 */
+/* 24 */
 /***/ function(module, exports) {
 
 	module.exports = "varying vec2 vUv;\nuniform vec2 step;\nuniform sampler2D tSource;\nuniform sampler2D tEnv;\nuniform float delta;\nuniform float feedFactor;\nuniform float killFactor;\nuniform vec2 brush;\nuniform vec2 brushColor;\nuniform float brushSize;\n\nvoid main() {\n\n    vec3 vEnv = texture2D( tEnv, vUv ).rgb;\n    float feed = vEnv.r * feedFactor;\n    float kill = vEnv.g * killFactor;\n    float sx = step.x * vEnv.b * 10.0;\n    float sy = step.y * vEnv.b * 10.0;\n\n    vec2 uv  = texture2D( tSource, vUv ).rg;\n    vec2 lapl =\n         + 0.05 * (\n            texture2D( tSource, vUv + vec2( -sx, -sy ) ).rg +\n            texture2D( tSource, vUv + vec2(  sx, -sy ) ).rg +\n            texture2D( tSource, vUv + vec2( -sx,  sy ) ).rg +\n            texture2D( tSource, vUv + vec2(  sx,  sy ) ).rg\n         )\n         + 0.20 * (\n            texture2D( tSource, vUv + vec2( -sx, 0.0 ) ).rg +\n            texture2D( tSource, vUv + vec2(  sx, 0.0 ) ).rg +\n            texture2D( tSource, vUv + vec2( 0.0, -sy ) ).rg +\n            texture2D( tSource, vUv + vec2( 0.0,  sy ) ).rg\n         )\n         - uv;\n    float reaction = uv.r * uv.g * uv.g;\n    float du = 1.0 * lapl.r - reaction +  feed * (1.0 - uv.r);\n    float dv = 0.5 * lapl.g + reaction - (feed + kill) * uv.g;\n    vec2 dst = uv + delta * vec2(du, dv);\n\n    if (brush.x > 0.0) {\n        vec2 diff = (vUv - brush) / step;\n        float dist = dot(diff, diff);\n        dst = dist < brushSize ? brushColor : dst.rg;\n    }\n    \n    gl_FragColor = vec4(dst, 0.0, 1.0);\n\n}"
 
 /***/ },
-/* 22 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var DrawPad, EnvironmentMap, UI, stackBlur,
 	  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
 	  hasProp = {}.hasOwnProperty;
 	
-	DrawPad = __webpack_require__(23);
+	DrawPad = __webpack_require__(26);
 	
 	UI = __webpack_require__(5);
 	
-	stackBlur = __webpack_require__(24);
+	stackBlur = __webpack_require__(27);
 	
 	EnvironmentMap = (function(superClass) {
 	  extend(EnvironmentMap, superClass);
@@ -64209,7 +64210,7 @@
 	        }
 	      })
 	    };
-	    presets = __webpack_require__(25);
+	    presets = __webpack_require__(28);
 	    options = [];
 	    for (i = j = 0, len = presets.length; j < len; i = ++j) {
 	      o = presets[i];
@@ -64325,7 +64326,7 @@
 
 
 /***/ },
-/* 23 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var $, DrawPad, EventEmitter, MouseUtils, PI2, THREE;
@@ -64334,9 +64335,9 @@
 	
 	$ = __webpack_require__(4);
 	
-	EventEmitter = __webpack_require__(8).EventEmitter;
+	EventEmitter = __webpack_require__(13).EventEmitter;
 	
-	MouseUtils = __webpack_require__(6);
+	MouseUtils = __webpack_require__(11);
 	
 	PI2 = 2 * Math.PI;
 	
@@ -64599,7 +64600,7 @@
 
 
 /***/ },
-/* 24 */
+/* 27 */
 /***/ function(module, exports) {
 
 	/*
@@ -65215,7 +65216,7 @@
 	module.exports = stackBlurCanvasRGB
 
 /***/ },
-/* 25 */
+/* 28 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -65223,64 +65224,76 @@
 	module.exports = [{
 	    name: "Default",
 	    feed: 0.37,
-	    kill: 0.6
+	    kill: 0.6,
+	    image: 'assets/preset-image/default.png'
 	}, {
 	    name: "Solitons",
 	    feed: 0.3,
-	    kill: 0.62
+	    kill: 0.62,
+	    image: 'assets/preset-image/solitons.png'
 	}, {
 	    name: "Pulsating Solitons",
 	    feed: 0.25,
-	    kill: 0.6
+	    kill: 0.6,
+	    image: 'assets/preset-image/pulsing-solitons.png'
 	}, {
 	    name: "Worms",
 	    feed: 0.78,
-	    kill: 0.61
+	    kill: 0.61,
+	    image: 'assets/preset-image/worms.png'
 	}, {
 	    name: "Mazes",
 	    feed: 0.29,
-	    kill: 0.57
+	    kill: 0.57,
+	    image: 'assets/preset-image/maze.png'
 	}, {
 	    name: "Holes",
 	    feed: 0.39,
-	    kill: 0.58
+	    kill: 0.58,
+	    image: 'assets/preset-image/holes.png'
 	}, {
 	    name: "Chaos",
 	    feed: 0.26,
-	    kill: 0.51
+	    kill: 0.51,
+	    image: 'assets/preset-image/chaos.png'
 	}, {
 	    name: "Chaos & Holes",
 	    feed: 0.34,
-	    kill: 0.56
+	    kill: 0.56,
+	    image: 'assets/preset-image/chaos-holes.png'
 	}, {
 	    name: "Moving Spots",
 	    feed: 0.14,
-	    kill: 0.54
+	    kill: 0.54,
+	    image: 'assets/preset-image/spots.png'
 	}, {
 	    name: "Spots & Loops",
 	    feed: 0.18,
-	    kill: 0.51
+	    kill: 0.51,
+	    image: 'assets/preset-image/spots-loops.png'
 	}, {
 	    name: "Waves",
 	    feed: 0.14,
-	    kill: 0.45
+	    kill: 0.45,
+	    image: 'assets/preset-image/waves.png'
 	}, {
 	    name: "U-Skate",
 	    feed: 0.62,
-	    kill: 0.6093
+	    kill: 0.6093,
+	    image: 'assets/preset-image/u-skate.png'
 	}];
 
 /***/ },
-/* 26 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var EventEmitter, Exporter;
 	
-	__webpack_require__(27);
+	__webpack_require__(30);
 	
-	__webpack_require__(28);
+	__webpack_require__(31);
 	
-	EventEmitter = __webpack_require__(8).EventEmitter;
+	EventEmitter = __webpack_require__(13).EventEmitter;
 	
 	Exporter = (function() {
 	  function Exporter(args) {
@@ -65445,7 +65458,7 @@
 
 
 /***/ },
-/* 27 */
+/* 30 */
 /***/ function(module, exports) {
 
 	/*
@@ -66023,7 +66036,7 @@
 
 
 /***/ },
-/* 28 */
+/* 31 */
 /***/ function(module, exports) {
 
 	( function() { 

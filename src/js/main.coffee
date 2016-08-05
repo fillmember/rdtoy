@@ -1,6 +1,6 @@
 gsap = require 'gsap'
 window.THREE = THREE = require 'three'
-window.$ = $ = require 'jquery'
+window.$ = window.jQuery = $ = require 'jquery'
 window.UI = UI = require './utils/InterfaceUtils.coffee'
 MouseUtils = require './utils/MouseUtils'
 ReactiveDiffusionSimulator = require './ReactiveDiffusionSimulator'
