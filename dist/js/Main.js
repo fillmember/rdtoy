@@ -64177,7 +64177,7 @@
 	  };
 	
 	  EnvironmentMap.prototype.setupInterface = function(section, root) {
-	    var i, j, len, o, options, presets, sliders;
+	    var i, j, len, o, options, presetSelect, presets, sliders;
 	    sliders = {
 	      feed: UI.slider({
 	        name: 'feed',
@@ -64218,7 +64218,7 @@
 	    }
 	    section.append(UI.item([
 	      UI.item(UI.col([
-	        UI.itemHeader([UI.icon('fa-paint-brush fa-fw'), UI.spanText('presets')]), UI.select({
+	        UI.itemHeader([UI.icon('fa-paint-brush fa-fw'), UI.spanText('presets')]), presetSelect = UI.select({
 	          name: 'presets',
 	          options: options,
 	          onChange: function(value) {
@@ -64273,7 +64273,7 @@
 	        })(this)
 	      })
 	    ]));
-	    return section.append(UI.item([
+	    section.append(UI.item([
 	      UI.btnGroup([
 	        UI.button({
 	          icon: 'fa-upload',
@@ -64316,6 +64316,9 @@
 	        })
 	      ])
 	    ]));
+	    return presetSelect.find('option').each(function(index, dom) {
+	      return $(dom).prop('data-image', presets[index].image);
+	    });
 	  };
 	
 	  return EnvironmentMap;

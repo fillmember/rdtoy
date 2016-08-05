@@ -84,7 +84,7 @@ class EnvironmentMap extends DrawPad
 					UI.icon 'fa-paint-brush fa-fw'
 					UI.spanText 'presets'
 				]
-				UI.select
+				presetSelect = UI.select
 					name: 'presets'
 					options: options
 					onChange: (value) ->
@@ -155,5 +155,8 @@ class EnvironmentMap extends DrawPad
 						dialogue.click()
 			]
 		]
+		#
+		presetSelect.find('option').each (index,dom) ->
+			$(dom).prop 'data-image' , presets[index].image
 
 module.exports = EnvironmentMap

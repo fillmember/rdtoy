@@ -3,37 +3,37 @@ module.exports = [
         name: "Default",
         feed: 0.37,
         kill: 0.6,
-        image : 'assets/preset-image/default.png'
+        image: 'assets/preset-image/default.png'
     },
     { 
         name: "Solitons",
         feed: 0.3,
         kill: 0.62,
-        image : 'assets/preset-image/solitons.png'
+        image: 'assets/preset-image/solitons.png'
     },
     { 
         name: "Pulsating Solitons",
         feed: 0.25,
         kill: 0.6,
-        image : 'assets/preset-image/pulsing-solitons.png'
+        image: 'assets/preset-image/pulsing-solitons.png'
     },
     { 
         name: "Worms",
         feed: 0.78,
         kill: 0.61,
-        image : 'assets/preset-image/worms.png'
+        image: 'assets/preset-image/worms.png'
     },
     { 
         name: "Mazes",
         feed: 0.29,
         kill: 0.57,
-        image : 'assets/preset-image/maze.png'
+        image: 'assets/preset-image/maze.png'
     },
     { 
         name: "Holes",
         feed: 0.39,
         kill: 0.58,
-        image : 'assets/preset-image/holes.png'
+        image: 'assets/preset-image/holes.png'
     },
     { 
         name: "Chaos",
