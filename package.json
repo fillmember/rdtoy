@@ -23,7 +23,7 @@
     "express-ws": "^0.2.6",
     "fluent-ffmpeg": "^2.0.1",
     "gsap": "^1.18.2",
-    "jquery": "^2.1.4",
+    "jquery": "^3.0.0",
     "lodash": "^3.10.1",
     "three": "^0.77.0"
   },
